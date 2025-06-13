@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\EmployeeManageController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\DesignationController;
 use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\Admin\AttendanceController;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -56,4 +57,8 @@ Route::post('/locations/delete', [LocationController::class, 'destroy'])->name('
     |--------------------------------------------------------------------------
     */
     Route::get('/roles', fn () => Inertia::render('Admin/ManageRoles/Index'))->name('roles.index');
+
+    Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
+
 });

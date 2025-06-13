@@ -17,11 +17,11 @@ class Punch extends Model
         'location',
     ];
 
-    protected $casts = [
-        'punched_in_at' => 'datetime',
-        'punched_out_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+    protected $dates = [
+        'punched_in_at',
+        'punched_out_at',
+        'created_at',
+        'updated_at',
     ];
 
     // Accessor to get type (in/out) dynamically

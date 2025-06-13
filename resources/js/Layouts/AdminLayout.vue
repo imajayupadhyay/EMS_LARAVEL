@@ -8,42 +8,25 @@
       >
         <div class="flex items-center justify-between p-4 border-b">
           <h2 class="text-xl font-bold text-orange-600">EMS Admin</h2>
-          <button class="md:hidden text-gray-700" @click="isSidebarOpen = false">
-            ✕
-          </button>
+          <button class="md:hidden text-gray-700" @click="isSidebarOpen = false">✕</button>
         </div>
 
         <nav class="p-4">
-  <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Employee Management</p>
-  <Link
-    :href="route('admin.employees.create')"
-    class="nav-link"
-    :class="{ active: route().current('admin.employees.create') }"
-  >Add Employee</Link>
-  <Link
-    :href="route('admin.employees.index')"
-    class="nav-link"
-    :class="{ active: route().current('admin.employees.index') }"
-  >Employee List</Link>
+          <!-- Employee Management -->
+          <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Employee Management</p>
+          <Link :href="route('admin.employees.create')" class="nav-link" :class="{ active: route().current('admin.employees.create') }">Add Employee</Link>
+          <Link :href="route('admin.employees.index')" class="nav-link" :class="{ active: route().current('admin.employees.index') }">Employee List</Link>
 
-  <p class="text-xs font-semibold text-gray-500 uppercase mt-4 mb-1">Organization Settings</p>
-  <Link
-    :href="route('admin.departments.index')"
-    class="nav-link"
-    :class="{ active: route().current('admin.departments.index') }"
-  >Departments</Link>
-  <Link
-    :href="route('admin.designations.index')"
-    class="nav-link"
-    :class="{ active: route().current('admin.designations.index') }"
-  >Designations</Link>
-  <Link
-    :href="route('admin.locations.index')"
-    class="nav-link"
-    :class="{ active: route().current('admin.locations.index') }"
-  >Locations</Link>
-</nav>
+          <!-- Attendance Management -->
+          <p class="text-xs font-semibold text-gray-500 uppercase mt-4 mb-1">Attendance Management</p>
+          <Link :href="route('admin.attendance.index')" class="nav-link" :class="{ active: route().current('admin.attendance.index') }">Attendance</Link>
 
+          <!-- Organization Settings -->
+          <p class="text-xs font-semibold text-gray-500 uppercase mt-4 mb-1">Organization Settings</p>
+          <Link :href="route('admin.departments.index')" class="nav-link" :class="{ active: route().current('admin.departments.index') }">Departments</Link>
+          <Link :href="route('admin.designations.index')" class="nav-link" :class="{ active: route().current('admin.designations.index') }">Designations</Link>
+          <Link :href="route('admin.locations.index')" class="nav-link" :class="{ active: route().current('admin.locations.index') }">Locations</Link>
+        </nav>
       </aside>
     </transition>
 
@@ -51,17 +34,10 @@
     <div class="flex-1 flex flex-col">
       <!-- Topbar -->
       <header class="flex justify-between items-center bg-white shadow p-4 md:px-6 sticky top-0 z-10">
-        <button class="md:hidden text-orange-600" @click="toggleSidebar">
-          ☰
-        </button>
+        <button class="md:hidden text-orange-600" @click="toggleSidebar">☰</button>
         <div class="flex items-center gap-4 text-sm">
           <span class="text-gray-600">👤 {{ auth?.user?.name || 'Admin' }}</span>
-          <Link
-            href="/logout"
-            method="post"
-            as="button"
-            class="text-red-600 hover:underline"
-          >Logout</Link>
+          <Link href="/logout" method="post" as="button" class="text-red-600 hover:underline">Logout</Link>
         </div>
       </header>
 
@@ -72,16 +48,14 @@
 
       <!-- Flash Message -->
       <transition name="fade">
-        <div
-          v-if="showFlash"
-          class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg"
-        >
+        <div v-if="showFlash" class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
           {{ flash.success }}
         </div>
       </transition>
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted } from 'vue'
