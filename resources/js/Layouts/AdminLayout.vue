@@ -23,7 +23,7 @@
         <nav class="p-4 space-y-2">
           <Link href="/admin/dashboard" class="block px-4 py-2 rounded hover:bg-orange-100">Dashboard</Link>
           <Link href="/admin/employees/create" class="block px-4 py-2 rounded hover:bg-orange-100">Add Employee</Link>
-          <Link href="/admin/employees" class="block px-4 py-2 rounded hover:bg-orange-100">Employee List</Link>
+          <Link href="/admin/employees/manage" class="block px-4 py-2 rounded hover:bg-orange-100">Employee List</Link>
           <Link href="/admin/departments" class="block px-4 py-2 rounded hover:bg-orange-100">Departments</Link>
           <Link href="/admin/designations" class="block px-4 py-2 rounded hover:bg-orange-100">Designations</Link>
         </nav>
