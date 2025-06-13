@@ -91,7 +91,6 @@ const form = useForm({ name: '' })
 const editing = ref({})
 const editValues = ref({})
 
-// Add New
 const addDepartment = () => {
   form.post(route('admin.departments.store'), {
     preserveScroll: true,
@@ -99,27 +98,18 @@ const addDepartment = () => {
   })
 }
 
-// Start Editing
 const startEdit = (dept) => {
   editing.value[dept.id] = true
   editValues.value[dept.id] = dept.name
 }
 
-// Update Department
 const updateDepartment = (id) => {
   const updateForm = useForm({
     name: editValues.value[id],
+    _method: 'put',
   })
 
-  updateForm.put(route('admin.departments.update', { department: id }), {
-    preserveScroll: true,
-    onSuccess: () => {
-      editing.value[id] = false
-    },
-  })
-
-  
-updateForm.put(route('admin.departments.update', { department: id }), {
+  updateForm.post(route('admin.departments.update', id), {
     preserveScroll: true,
     onSuccess: () => {
       editing.value[id] = false
@@ -127,10 +117,13 @@ updateForm.put(route('admin.departments.update', { department: id }), {
   })
 }
 
-// Delete
 const deleteDepartment = (id) => {
   if (confirm('Are you sure you want to delete this department?')) {
-    router.delete(route('admin.departments.destroy', id), {
+    const deleteForm = useForm({
+      _method: 'delete',
+    })
+
+    deleteForm.post(route('admin.departments.destroy', id), {
       preserveScroll: true,
     })
   }

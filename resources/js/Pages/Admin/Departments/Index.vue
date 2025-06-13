@@ -3,6 +3,11 @@
     <div class="max-w-4xl mx-auto p-6">
       <h2 class="text-2xl font-bold text-orange-600 mb-6">Manage Departments</h2>
 
+      <!-- Flash Message -->
+      <div v-if="$page.props.flash.success" class="mb-4 p-3 bg-green-100 text-green-800 rounded">
+        {{ $page.props.flash.success }}
+      </div>
+
       <!-- Add Department -->
       <form @submit.prevent="addDepartment" class="flex flex-col md:flex-row gap-3 mb-6">
         <input
@@ -83,19 +88,19 @@ import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { ref } from 'vue'
 import { useForm, router } from '@inertiajs/vue3'
 
-// Props passed from controller
+// Props from backend
 const props = defineProps({
   departments: Array,
 })
 
-// Form for adding
+// Add department form
 const form = useForm({ name: '' })
 
-// Track which row is being edited
+// Edit tracking
 const editing = ref({})
 const editValues = ref({})
 
-// Add department
+// Add Department
 const addDepartment = () => {
   form.post(route('admin.departments.store'), {
     preserveScroll: true,
@@ -103,19 +108,20 @@ const addDepartment = () => {
   })
 }
 
-// Start editing
+// Start Editing
 const startEdit = (dept) => {
   editing.value[dept.id] = true
   editValues.value[dept.id] = dept.name
 }
 
-// Update department (fixed route)
+// Update Department using POST + _method spoofing
 const updateDepartment = (id) => {
   const updateForm = useForm({
     name: editValues.value[id],
+    _method: 'put',
   })
 
-  updateForm.put(route('admin.departments.update', { department: id }), {
+  updateForm.post(route('admin.departments.update', id), {
     preserveScroll: true,
     onSuccess: () => {
       editing.value[id] = false
@@ -126,7 +132,11 @@ const updateDepartment = (id) => {
 // Delete
 const deleteDepartment = (id) => {
   if (confirm('Are you sure you want to delete this department?')) {
-    router.delete(route('admin.departments.destroy', id), {
+    const deleteForm = useForm({
+      _method: 'delete',
+    })
+
+    deleteForm.post(route('admin.departments.destroy', id), {
       preserveScroll: true,
     })
   }
