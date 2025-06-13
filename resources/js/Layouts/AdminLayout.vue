@@ -14,30 +14,36 @@
         </div>
 
         <nav class="p-4">
-          <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Employee Management</p>
-          <Link
-            :href="route('admin.employees.create')"
-            class="nav-link"
-            :class="{ active: route().current('admin.employees.create') }"
-          >Add Employee</Link>
-          <Link
-            :href="route('admin.employees.index')"
-            class="nav-link"
-            :class="{ active: route().current('admin.employees.index') }"
-          >Employee List</Link>
+  <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Employee Management</p>
+  <Link
+    :href="route('admin.employees.create')"
+    class="nav-link"
+    :class="{ active: route().current('admin.employees.create') }"
+  >Add Employee</Link>
+  <Link
+    :href="route('admin.employees.index')"
+    class="nav-link"
+    :class="{ active: route().current('admin.employees.index') }"
+  >Employee List</Link>
 
-          <p class="text-xs font-semibold text-gray-500 uppercase mt-4 mb-1">Organization Settings</p>
-          <Link
-            :href="route('admin.departments.index')"
-            class="nav-link"
-            :class="{ active: route().current('admin.departments.index') }"
-          >Departments</Link>
-          <Link
-            :href="route('admin.designations.index')"
-            class="nav-link"
-            :class="{ active: route().current('admin.designations.index') }"
-          >Designations</Link>
-        </nav>
+  <p class="text-xs font-semibold text-gray-500 uppercase mt-4 mb-1">Organization Settings</p>
+  <Link
+    :href="route('admin.departments.index')"
+    class="nav-link"
+    :class="{ active: route().current('admin.departments.index') }"
+  >Departments</Link>
+  <Link
+    :href="route('admin.designations.index')"
+    class="nav-link"
+    :class="{ active: route().current('admin.designations.index') }"
+  >Designations</Link>
+  <Link
+    :href="route('admin.locations.index')"
+    class="nav-link"
+    :class="{ active: route().current('admin.locations.index') }"
+  >Locations</Link>
+</nav>
+
       </aside>
     </transition>
 

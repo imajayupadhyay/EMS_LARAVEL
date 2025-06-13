@@ -13,6 +13,7 @@ class LocationController extends Controller
     {
         return Inertia::render('Admin/Locations/Index', [
             'locations' => Location::latest()->get(),
+            'flash' => session('success'),
         ]);
     }
 
@@ -26,26 +27,32 @@ class LocationController extends Controller
 
         Location::create($request->only('name', 'latitude', 'longitude'));
 
-        return back()->with('success', 'Location added successfully.');
+        return redirect()->route('admin.locations.index')->with('success', 'Location added successfully.');
     }
 
-    public function update(Request $request, Location $location)
+    public function update(Request $request)
     {
         $request->validate([
+            'id' => 'required|exists:locations,id',
             'name' => 'required|string|max:255',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
         ]);
 
+        $location = Location::findOrFail($request->id);
         $location->update($request->only('name', 'latitude', 'longitude'));
 
-        return back()->with('success', 'Location updated successfully.');
+        return redirect()->route('admin.locations.index')->with('success', 'Location updated successfully.');
     }
 
-    public function destroy(Location $location)
+    public function destroy(Request $request)
     {
-        $location->delete();
+        $request->validate([
+            'id' => 'required|exists:locations,id'
+        ]);
 
-        return back()->with('success', 'Location deleted successfully.');
+        Location::destroy($request->id);
+
+        return redirect()->route('admin.locations.index')->with('success', 'Location deleted successfully.');
     }
 }
