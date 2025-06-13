@@ -34,6 +34,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     Route::resource('departments', DepartmentController::class)->except(['show', 'create', 'edit']);
     Route::resource('designations', DesignationController::class)->except(['show', 'create', 'edit']);
+
 });
 
 
@@ -41,4 +42,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::get('/employees/manage', [EmployeeManageController::class, 'index'])->name('employees.manage');
     Route::post('/employees/manage/{employee}', [EmployeeManageController::class, 'update'])->name('employees.manage.update');
     Route::post('/employees/manage/{employee}/delete', [EmployeeManageController::class, 'destroy'])->name('employees.manage.destroy');
+    Route::get('/employees/manage', [EmployeeManageController::class, 'index'])->name('employees.index');
 });
+
+

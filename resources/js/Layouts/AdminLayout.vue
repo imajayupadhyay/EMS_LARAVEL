@@ -1,44 +1,74 @@
 <template>
-  <div class="min-h-screen flex flex-col md:flex-row bg-gray-100 relative overflow-x-hidden">
-    
-    <!-- Hamburger Button (Mobile) -->
-    <div class="md:hidden flex justify-between items-center p-4 shadow bg-white z-10">
-      <h1 class="text-xl font-bold text-orange-600">Admin</h1>
-      <button @click="toggleSidebar" class="text-orange-600 focus:outline-none">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-          viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
-    </div>
-
+  <div class="min-h-screen flex bg-gray-100 relative">
     <!-- Sidebar -->
     <transition name="slide">
       <aside
         v-show="isSidebarOpen || isDesktop"
-        class="fixed md:relative top-0 right-0 md:right-auto z-30 bg-white w-64 h-full md:h-auto shadow-lg md:block"
+        class="fixed md:relative z-30 bg-white w-64 min-h-screen shadow-lg"
       >
-        <div class="p-4 font-bold text-orange-600 text-xl border-b">Admin Panel</div>
-        <nav class="p-4 space-y-2">
-          <Link href="/admin/dashboard" class="block px-4 py-2 rounded hover:bg-orange-100">Dashboard</Link>
-          <Link href="/admin/employees/create" class="block px-4 py-2 rounded hover:bg-orange-100">Add Employee</Link>
-          <Link href="/admin/employees/manage" class="block px-4 py-2 rounded hover:bg-orange-100">Employee List</Link>
-          <Link href="/admin/departments" class="block px-4 py-2 rounded hover:bg-orange-100">Departments</Link>
-          <Link href="/admin/designations" class="block px-4 py-2 rounded hover:bg-orange-100">Designations</Link>
+        <div class="flex items-center justify-between p-4 border-b">
+          <h2 class="text-xl font-bold text-orange-600">EMS Admin</h2>
+          <button class="md:hidden text-gray-700" @click="isSidebarOpen = false">
+            ✕
+          </button>
+        </div>
+
+        <nav class="p-4">
+          <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Employee Management</p>
+          <Link
+            :href="route('admin.employees.create')"
+            class="nav-link"
+            :class="{ active: route().current('admin.employees.create') }"
+          >Add Employee</Link>
+          <Link
+            :href="route('admin.employees.index')"
+            class="nav-link"
+            :class="{ active: route().current('admin.employees.index') }"
+          >Employee List</Link>
+
+          <p class="text-xs font-semibold text-gray-500 uppercase mt-4 mb-1">Organization Settings</p>
+          <Link
+            :href="route('admin.departments.index')"
+            class="nav-link"
+            :class="{ active: route().current('admin.departments.index') }"
+          >Departments</Link>
+          <Link
+            :href="route('admin.designations.index')"
+            class="nav-link"
+            :class="{ active: route().current('admin.designations.index') }"
+          >Designations</Link>
         </nav>
       </aside>
     </transition>
 
-    <!-- Page Content -->
-    <div class="flex-1 p-4 md:ml-0 relative">
-      <slot />
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <!-- Topbar -->
+      <header class="flex justify-between items-center bg-white shadow p-4 md:px-6 sticky top-0 z-10">
+        <button class="md:hidden text-orange-600" @click="toggleSidebar">
+          ☰
+        </button>
+        <div class="flex items-center gap-4 text-sm">
+          <span class="text-gray-600">👤 {{ auth?.user?.name || 'Admin' }}</span>
+          <Link
+            href="/logout"
+            method="post"
+            as="button"
+            class="text-red-600 hover:underline"
+          >Logout</Link>
+        </div>
+      </header>
+
+      <!-- Page Slot -->
+      <main class="p-4 md:p-6">
+        <slot />
+      </main>
 
       <!-- Flash Message -->
       <transition name="fade">
         <div
-          v-if="showMessage"
-          class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50"
+          v-if="showFlash"
+          class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg"
         >
           {{ flash.success }}
         </div>
@@ -50,49 +80,63 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { usePage, Link } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
+
+const page = usePage()
+const flash = page.props.flash || {}
+const auth = page.props.auth || {}
 
 const isSidebarOpen = ref(false)
-const isDesktop = ref(false)
-
-const checkScreen = () => {
-  isDesktop.value = window.innerWidth >= 768
-}
+const isDesktop = ref(window.innerWidth >= 768)
+const showFlash = ref(!!flash.success)
 
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
 }
 
-// Flash success message logic
-const flash = usePage().props.flash
-const showMessage = ref(!!flash?.success)
-
 onMounted(() => {
-  checkScreen()
-  window.addEventListener('resize', checkScreen)
-
-  if (flash?.success) {
+  window.addEventListener('resize', () => {
+    isDesktop.value = window.innerWidth >= 768
+  })
+  if (flash.success) {
     setTimeout(() => {
-      showMessage.value = false
+      showFlash.value = false
     }, 3000)
   }
 })
 </script>
 
 <style scoped>
-.slide-enter-active, .slide-leave-active {
-  transition: transform 0.3s ease-in-out;
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
 }
-.slide-enter-from {
-  transform: translateX(100%);
-}
+.slide-enter-from,
 .slide-leave-to {
-  transform: translateX(100%);
+  transform: translateX(-100%);
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
 }
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
+}
+
+.nav-link {
+  display: block;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  color: #374151;
+  font-weight: 500;
+}
+.nav-link:hover {
+  background-color: #fff7ed;
+}
+.nav-link.active {
+  background-color: #f97316;
+  color: white;
 }
 </style>
