@@ -9,24 +9,43 @@
         <!-- Sidebar Header -->
         <div class="flex items-center justify-between p-4 border-b">
           <h2 class="text-xl font-bold text-orange-600">EMS Employee</h2>
-          <button class="md:hidden text-gray-700" @click="isSidebarOpen = false">
-            ✕
-          </button>
+          <button class="md:hidden text-gray-700" @click="isSidebarOpen = false">✕</button>
         </div>
 
         <!-- Navigation -->
-        <nav class="p-4 space-y-2">
-          <Link
-            :href="route('employee.dashboard')"
-            class="nav-link"
-            :class="{ active: isActive('/employee/dashboard') }"
-          >Dashboard</Link>
+        <nav class="p-4 space-y-4">
+          <!-- Category 1 -->
+          <div>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase mb-1">Main</h3>
+            <Link
+              :href="route('employee.dashboard')"
+              class="nav-link"
+              :class="{ active: isActive('/employee/dashboard') }"
+            >Dashboard</Link>
+            <Link
+              :href="route('employee.punches.index')"
+              class="nav-link"
+              :class="{ active: isActive('/employee/punches') }"
+            >Punch In / Out</Link>
+            <Link
+              :href="route('employee.tasks.index')"
+              class="nav-link"
+              :class="{ active: isActive('/employee/tasks') }"
+            >Daily Tasks</Link>
+          </div>
 
-          <Link
-            :href="route('employee.punches.index')"
-            class="nav-link"
-            :class="{ active: isActive('/employee/punches') }"
-          >Punch In / Out</Link>
+          <!-- Future Category Example -->
+          <div>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase mb-1">Leave & Attendance</h3>
+            <Link
+              href="#"
+              class="nav-link opacity-50 cursor-not-allowed"
+            >Attendance (Coming Soon)</Link>
+            <Link
+              href="#"
+              class="nav-link opacity-50 cursor-not-allowed"
+            >Leave Management (Coming Soon)</Link>
+          </div>
         </nav>
       </aside>
     </transition>
@@ -37,9 +56,7 @@
       <header class="flex justify-between items-center bg-white shadow p-4 md:px-6 sticky top-0 z-10">
         <button class="md:hidden text-orange-600" @click="toggleSidebar">☰</button>
         <div class="flex items-center gap-4 text-sm">
-          <span class="text-gray-600">
-            👤 {{ auth?.user?.name || 'Employee' }}
-          </span>
+          <span class="text-gray-600">👤 {{ auth?.user?.name || 'Employee' }}</span>
           <Link
             href="/logout"
             method="post"
