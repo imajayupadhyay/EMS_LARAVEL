@@ -33,21 +33,7 @@
               ✅ View Tasks
             </Link>
           </div>
-
-          <!-- Organization Settings -->
-          <div>
-            <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Organization Settings</p>
-            <Link :href="route('admin.departments.index')" class="nav-link" :class="{ active: route().current('admin.departments.index') }">
-              🏢 Departments
-            </Link>
-            <Link :href="route('admin.designations.index')" class="nav-link" :class="{ active: route().current('admin.designations.index') }">
-              🏷️ Designations
-            </Link>
-            <Link :href="route('admin.locations.index')" class="nav-link" :class="{ active: route().current('admin.locations.index') }">
-              📍 Locations
-            </Link>
-          </div>
-          <!-- Leave Management -->
+                 <!-- Leave Management -->
 <div>
   <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Leave Management</p>
   <Link 
@@ -64,7 +50,29 @@
   >
     🎊 Holidays
   </Link>
+  <Link 
+    :href="route('admin.leave-assignments.index')" 
+    class="nav-link" 
+    :class="{ active: route().current('admin.leave-assignments.index') }"
+  >
+    📝 Leave Assignments
+  </Link>
 </div>
+
+          <!-- Organization Settings -->
+          <div>
+            <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Organization Settings</p>
+            <Link :href="route('admin.departments.index')" class="nav-link" :class="{ active: route().current('admin.departments.index') }">
+              🏢 Departments
+            </Link>
+            <Link :href="route('admin.designations.index')" class="nav-link" :class="{ active: route().current('admin.designations.index') }">
+              🏷️ Designations
+            </Link>
+            <Link :href="route('admin.locations.index')" class="nav-link" :class="{ active: route().current('admin.locations.index') }">
+              📍 Locations
+            </Link>
+          </div>
+   
 
         </nav>
       </aside>

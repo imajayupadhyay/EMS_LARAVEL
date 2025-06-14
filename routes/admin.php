@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\LeaveTypeController;
 use App\Http\Controllers\Admin\HolidayController;
+use App\Http\Controllers\Admin\LeaveAssignmentController;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -78,5 +79,11 @@ Route::post('/locations/delete', [LocationController::class, 'destroy'])->name('
 Route::post('/holidays', [HolidayController::class, 'store'])->name('holidays.store');
 Route::post('/holidays/{holiday}', [HolidayController::class, 'update'])->name('holidays.update');
 Route::post('/holidays/{holiday}/delete', [HolidayController::class, 'destroy'])->name('holidays.destroy');
+
+Route::get('/leave-assignments', [LeaveAssignmentController::class, 'index'])->name('leave-assignments.index');
+    Route::post('/leave-assignments', [LeaveAssignmentController::class, 'store'])->name('leave-assignments.store');
+    Route::post('/leave-assignments/{leaveAssignment}/update', [LeaveAssignmentController::class, 'update'])->name('leave-assignments.update');
+    Route::post('/leave-assignments/{leaveAssignment}/delete', [LeaveAssignmentController::class, 'destroy'])->name('leave-assignments.destroy');
+
 
 });
