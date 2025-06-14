@@ -57,6 +57,13 @@
   >
     📌 Leave Types
   </Link>
+    <Link 
+    :href="route('admin.holidays.index')" 
+    class="nav-link" 
+    :class="{ active: route().current('admin.holidays.index') }"
+  >
+    🎊 Holidays
+  </Link>
 </div>
 
         </nav>
