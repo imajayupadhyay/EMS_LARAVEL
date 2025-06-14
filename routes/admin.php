@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\DesignationController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\AttendanceController;
 use App\Http\Controllers\Admin\TaskController;
+use App\Http\Controllers\Admin\LeaveTypeController;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -63,4 +64,11 @@ Route::post('/locations/delete', [LocationController::class, 'destroy'])->name('
     Route::get('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
   
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+
+
+
+    Route::get('/leave-types', [LeaveTypeController::class, 'index'])->name('leave-types.index');
+    Route::post('/leave-types', [LeaveTypeController::class, 'store'])->name('leave-types.store');
+    Route::post('/leave-types/{leaveType}', [LeaveTypeController::class, 'update'])->name('leave-types.update');
+    Route::post('/leave-types/{leaveType}/delete', [LeaveTypeController::class, 'destroy'])->name('leave-types.destroy');
 });

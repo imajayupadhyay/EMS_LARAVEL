@@ -47,6 +47,18 @@
               📍 Locations
             </Link>
           </div>
+          <!-- Leave Management -->
+<div>
+  <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Leave Management</p>
+  <Link 
+    :href="route('admin.leave-types.index')" 
+    class="nav-link" 
+    :class="{ active: route().current('admin.leave-types.index') }"
+  >
+    📌 Leave Types
+  </Link>
+</div>
+
         </nav>
       </aside>
     </transition>
