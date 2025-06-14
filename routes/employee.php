@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Employee\PunchController;
 use App\Http\Controllers\Employee\TaskController;
+use App\Http\Controllers\Employee\LeaveApplicationController;
 
 Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(function () {
 
@@ -24,11 +25,9 @@ Route::get('/attendance', [\App\Http\Controllers\Employee\AttendanceController::
 
 
 
+Route::get('/leave-applications', [LeaveApplicationController::class, 'index'])->name('leave-applications.index');
+    Route::post('/leave-applications', [LeaveApplicationController::class, 'store'])->name('leave-applications.store');
+    Route::post('/leave-applications/{leave}/update', [LeaveApplicationController::class, 'update'])->name('leave-applications.update');
+    Route::post('/leave-applications/{leave}/delete', [LeaveApplicationController::class, 'destroy'])->name('leave-applications.destroy');
 
-    // Future: Leave Management
-    // Route::get('/leaves', [LeaveController::class, 'index'])->name('leaves.index');
-    // Route::post('/leaves', [LeaveController::class, 'store'])->name('leaves.store');
-
-    // Future: Assigned Tasks
-    // Route::get('/assignments', [AssignmentController::class, 'index'])->name('assignments.index');
 });

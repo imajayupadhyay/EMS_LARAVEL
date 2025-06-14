@@ -14,39 +14,41 @@
 
         <!-- Navigation -->
         <nav class="p-4 space-y-4">
-          <!-- Category 1 -->
+          <!-- Main -->
           <div>
             <h3 class="text-xs font-semibold text-gray-500 uppercase mb-1">Main</h3>
-            <Link
-              :href="route('employee.dashboard')"
-              class="nav-link"
-              :class="{ active: isActive('/employee/dashboard') }"
-            >Dashboard</Link>
-            <Link
-              :href="route('employee.punches.index')"
-              class="nav-link"
-              :class="{ active: isActive('/employee/punches') }"
-            >Punch In / Out</Link>
-            <Link
-              :href="route('employee.tasks.index')"
-              class="nav-link"
-              :class="{ active: isActive('/employee/tasks') }"
-            >Daily Tasks</Link>
+            <Link :href="route('employee.dashboard')" class="nav-link" :class="{ active: isActive('/employee/dashboard') }">
+              🏠 Dashboard
+            </Link>
+            <Link :href="route('employee.punches.index')" class="nav-link" :class="{ active: isActive('/employee/punches') }">
+              ⏱ Punch In / Out
+            </Link>
+            <Link :href="route('employee.tasks.index')" class="nav-link" :class="{ active: isActive('/employee/tasks') }">
+              📝 Daily Tasks
+            </Link>
           </div>
 
-          <!-- Future Category Example -->
+          <!-- Leave & Attendance -->
           <div>
-  <h3 class="text-xs font-semibold text-gray-500 uppercase mb-1">Leave & Attendance</h3>
-  <Link
-    :href="route('employee.attendance.index')"
-    class="nav-link"
-    :class="{ active: isActive('/employee/attendance') }"
-  >Attendance</Link>
-  <Link
-    href="#"
-    class="nav-link opacity-50 cursor-not-allowed"
-  >Leave Management (Coming Soon)</Link>
-</div>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase mb-1">Leave & Attendance</h3>
+            <Link :href="route('employee.attendance.index')" class="nav-link" :class="{ active: isActive('/employee/attendance') }">
+              📊 Attendance
+            </Link>
+            <Link :href="route('employee.leave-applications.index')" class="nav-link" :class="{ active: isActive('/employee/leave-applications') }">
+              🌿 Leave Applications
+            </Link>
+          </div>
+
+          <!-- Future -->
+          <div>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase mb-1">Future</h3>
+            <Link href="#" class="nav-link opacity-50 cursor-not-allowed">
+              📌 Leave Summary (Coming Soon)
+            </Link>
+            <Link href="#" class="nav-link opacity-50 cursor-not-allowed">
+              💬 Notifications (Coming Soon)
+            </Link>
+          </div>
         </nav>
       </aside>
     </transition>
@@ -58,12 +60,7 @@
         <button class="md:hidden text-orange-600" @click="toggleSidebar">☰</button>
         <div class="flex items-center gap-4 text-sm">
           <span class="text-gray-600">👤 {{ auth?.user?.name || 'Employee' }}</span>
-          <Link
-            href="/logout"
-            method="post"
-            as="button"
-            class="text-red-600 hover:underline"
-          >Logout</Link>
+          <Link href="/logout" method="post" as="button" class="text-red-600 hover:underline">Logout</Link>
         </div>
       </header>
 
@@ -72,12 +69,9 @@
         <slot />
       </main>
 
-      <!-- Flash Message -->
+      <!-- Flash -->
       <transition name="fade">
-        <div
-          v-if="showFlash"
-          class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg"
-        >
+        <div v-if="showFlash" class="fixed bottom-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
           {{ flash.success }}
         </div>
       </transition>
@@ -136,7 +130,9 @@ onMounted(() => {
 }
 
 .nav-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
   color: #374151;
