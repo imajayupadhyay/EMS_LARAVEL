@@ -19,6 +19,7 @@ Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(functi
   Route::post('/tasks/save', [TaskController::class, 'save'])->name('tasks.save');
 Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
 
+Route::get('/attendance', [\App\Http\Controllers\Employee\AttendanceController::class, 'index'])->name('attendance.index');
 
     // Future: Leave Management
     // Route::get('/leaves', [LeaveController::class, 'index'])->name('leaves.index');

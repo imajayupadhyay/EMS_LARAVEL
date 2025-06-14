@@ -36,16 +36,17 @@
 
           <!-- Future Category Example -->
           <div>
-            <h3 class="text-xs font-semibold text-gray-500 uppercase mb-1">Leave & Attendance</h3>
-            <Link
-              href="#"
-              class="nav-link opacity-50 cursor-not-allowed"
-            >Attendance (Coming Soon)</Link>
-            <Link
-              href="#"
-              class="nav-link opacity-50 cursor-not-allowed"
-            >Leave Management (Coming Soon)</Link>
-          </div>
+  <h3 class="text-xs font-semibold text-gray-500 uppercase mb-1">Leave & Attendance</h3>
+  <Link
+    :href="route('employee.attendance.index')"
+    class="nav-link"
+    :class="{ active: isActive('/employee/attendance') }"
+  >Attendance</Link>
+  <Link
+    href="#"
+    class="nav-link opacity-50 cursor-not-allowed"
+  >Leave Management (Coming Soon)</Link>
+</div>
         </nav>
       </aside>
     </transition>
