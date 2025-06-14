@@ -13,6 +13,7 @@ Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(functi
     // Punch In / Punch Out
     Route::get('/punches', [PunchController::class, 'index'])->name('punches.index');
     Route::post('/punches', [PunchController::class, 'store'])->name('punches.store');
+    
 
     // Task routes (clean single save + delete)
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
@@ -20,6 +21,9 @@ Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(functi
 Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
 
 Route::get('/attendance', [\App\Http\Controllers\Employee\AttendanceController::class, 'index'])->name('attendance.index');
+
+
+
 
     // Future: Leave Management
     // Route::get('/leaves', [LeaveController::class, 'index'])->name('leaves.index');
