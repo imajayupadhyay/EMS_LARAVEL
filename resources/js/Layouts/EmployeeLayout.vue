@@ -37,17 +37,10 @@
             <Link :href="route('employee.leave-applications.index')" class="nav-link" :class="{ active: isActive('/employee/leave-applications') }">
               🌿 Leave Applications
             </Link>
-          </div>
+            <Link :href="route('employee.leave-summary.index')" class="nav-link" :class="{ active: isActive('/employee/leave-summary') }">
+  📈 Leave Summary
+</Link>
 
-          <!-- Future -->
-          <div>
-            <h3 class="text-xs font-semibold text-gray-500 uppercase mb-1">Future</h3>
-            <Link href="#" class="nav-link opacity-50 cursor-not-allowed">
-              📌 Leave Summary (Coming Soon)
-            </Link>
-            <Link href="#" class="nav-link opacity-50 cursor-not-allowed">
-              💬 Notifications (Coming Soon)
-            </Link>
           </div>
         </nav>
       </aside>

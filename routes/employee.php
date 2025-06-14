@@ -5,6 +5,9 @@ use Inertia\Inertia;
 use App\Http\Controllers\Employee\PunchController;
 use App\Http\Controllers\Employee\TaskController;
 use App\Http\Controllers\Employee\LeaveApplicationController;
+use App\Http\Controllers\Employee\LeaveSummaryController;
+
+
 
 Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(function () {
 
@@ -29,5 +32,8 @@ Route::get('/leave-applications', [LeaveApplicationController::class, 'index'])-
     Route::post('/leave-applications', [LeaveApplicationController::class, 'store'])->name('leave-applications.store');
     Route::post('/leave-applications/{leave}/update', [LeaveApplicationController::class, 'update'])->name('leave-applications.update');
     Route::post('/leave-applications/{leave}/delete', [LeaveApplicationController::class, 'destroy'])->name('leave-applications.destroy');
+
+
+    Route::get('/leave-summary', [\App\Http\Controllers\Employee\LeaveSummaryController::class, 'index'])->name('leave-summary.index');
 
 });
