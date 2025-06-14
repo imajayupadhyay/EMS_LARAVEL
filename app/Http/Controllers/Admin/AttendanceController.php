@@ -19,8 +19,7 @@ class AttendanceController extends Controller
         $selectedDate = $request->get('date');
         $selectedMonth = $request->get('month') ?? now()->format('Y-m');
 
-        // Build the base query
-        $query = Punch::with('user')
+        $query = Punch::with('user.designation')
             ->when($selectedEmployee, fn ($q) => $q->where('user_id', $selectedEmployee))
             ->when($selectedDate, fn ($q) => $q->whereDate('punched_in_at', $selectedDate))
             ->when($selectedMonth, fn ($q) => $q->whereMonth('punched_in_at', Carbon::parse($selectedMonth)->month)
@@ -50,14 +49,13 @@ class AttendanceController extends Controller
             ];
         })->values();
 
-        $employees = User::select('id', 'name')->get();
         $totalWorkingDays = $punches->groupBy(function ($punch) {
             return Carbon::parse($punch->punched_in_at)->format('Y-m-d');
         })->count();
 
         return Inertia::render('Admin/Attendance/Index', [
             'attendance' => $attendance,
-            'employees' => $employees,
+            'employees' => User::select('id', 'name')->get(),
             'totalWorkingDays' => $totalWorkingDays,
             'filters' => [
                 'employee_id' => $selectedEmployee,

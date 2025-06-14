@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Exports;
 
 use App\Models\Punch;
@@ -18,7 +17,7 @@ class AttendanceExport implements FromView
 
     public function view(): View
     {
-        $query = Punch::with('user')
+        $query = Punch::with('user.designation')
             ->when($this->request->employee_id, fn ($q) => $q->where('user_id', $this->request->employee_id))
             ->when($this->request->date, fn ($q) => $q->whereDate('punched_in_at', $this->request->date))
             ->when($this->request->month, function ($q) {
@@ -51,8 +50,13 @@ class AttendanceExport implements FromView
             ];
         })->values();
 
+        $totalWorkingDays = $punches->groupBy(function ($punch) {
+            return Carbon::parse($punch->punched_in_at)->format('Y-m-d');
+        })->count();
+
         return view('exports.attendance', [
-            'attendance' => $attendance
+            'attendance' => $attendance,
+            'totalWorkingDays' => $totalWorkingDays
         ]);
     }
 }

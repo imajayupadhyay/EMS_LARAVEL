@@ -3,7 +3,7 @@
     <div class="max-w-7xl mx-auto py-8 px-4">
       <h1 class="text-2xl font-bold text-orange-600 mb-6">Attendance Summary</h1>
 
-      <!-- Flash Success -->
+      <!-- Flash -->
       <div v-if="$page.props.flash.success" class="bg-green-100 text-green-700 px-4 py-2 mb-4 rounded">
         {{ $page.props.flash.success }}
       </div>
@@ -25,6 +25,11 @@
         >
           Export to Excel
         </button>
+      </div>
+
+      <!-- Total Working Days -->
+      <div class="bg-orange-50 border-l-4 border-orange-400 text-orange-700 px-4 py-2 mb-4 rounded">
+        <strong>Total Working Days this Month:</strong> {{ totalWorkingDays }}
       </div>
 
       <!-- Attendance Table -->
@@ -66,6 +71,7 @@ const props = defineProps({
   attendance: Array,
   employees: Array,
   filters: Object,
+  totalWorkingDays: Number,
 })
 
 const filters = reactive({ ...props.filters })

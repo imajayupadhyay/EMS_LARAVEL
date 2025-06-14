@@ -75,5 +75,13 @@ class User extends Authenticatable
 {
     return $this->hasMany(Punch::class);
 }
+public function designation()
+{
+    return $this->belongsTo(Designation::class);
+}
+public function department()
+{
+    return $this->belongsTo(Department::class);
+}
 
 }
