@@ -11,21 +11,42 @@
           <button class="md:hidden text-gray-700" @click="isSidebarOpen = false">✕</button>
         </div>
 
-        <nav class="p-4">
+        <nav class="p-4 space-y-4">
           <!-- Employee Management -->
-          <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Employee Management</p>
-          <Link :href="route('admin.employees.create')" class="nav-link" :class="{ active: route().current('admin.employees.create') }">Add Employee</Link>
-          <Link :href="route('admin.employees.index')" class="nav-link" :class="{ active: route().current('admin.employees.index') }">Employee List</Link>
+          <div>
+            <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Employee Management</p>
+            <Link :href="route('admin.employees.create')" class="nav-link" :class="{ active: route().current('admin.employees.create') }">
+              👤 Add Employee
+            </Link>
+            <Link :href="route('admin.employees.index')" class="nav-link" :class="{ active: route().current('admin.employees.index') }">
+              📋 Employee List
+            </Link>
+          </div>
 
           <!-- Attendance Management -->
-          <p class="text-xs font-semibold text-gray-500 uppercase mt-4 mb-1">Attendance Management</p>
-          <Link :href="route('admin.attendance.index')" class="nav-link" :class="{ active: route().current('admin.attendance.index') }">Attendance</Link>
+          <div>
+            <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Attendance Management</p>
+            <Link :href="route('admin.attendance.index')" class="nav-link" :class="{ active: route().current('admin.attendance.index') }">
+              🕒 Attendance
+            </Link>
+            <Link :href="route('admin.tasks.index')" class="nav-link" :class="{ active: route().current('admin.tasks.index') }">
+              ✅ View Tasks
+            </Link>
+          </div>
 
           <!-- Organization Settings -->
-          <p class="text-xs font-semibold text-gray-500 uppercase mt-4 mb-1">Organization Settings</p>
-          <Link :href="route('admin.departments.index')" class="nav-link" :class="{ active: route().current('admin.departments.index') }">Departments</Link>
-          <Link :href="route('admin.designations.index')" class="nav-link" :class="{ active: route().current('admin.designations.index') }">Designations</Link>
-          <Link :href="route('admin.locations.index')" class="nav-link" :class="{ active: route().current('admin.locations.index') }">Locations</Link>
+          <div>
+            <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Organization Settings</p>
+            <Link :href="route('admin.departments.index')" class="nav-link" :class="{ active: route().current('admin.departments.index') }">
+              🏢 Departments
+            </Link>
+            <Link :href="route('admin.designations.index')" class="nav-link" :class="{ active: route().current('admin.designations.index') }">
+              🏷️ Designations
+            </Link>
+            <Link :href="route('admin.locations.index')" class="nav-link" :class="{ active: route().current('admin.locations.index') }">
+              📍 Locations
+            </Link>
+          </div>
         </nav>
       </aside>
     </transition>
@@ -55,7 +76,6 @@
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref, onMounted } from 'vue'
@@ -106,7 +126,9 @@ onMounted(() => {
 }
 
 .nav-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
   color: #374151;

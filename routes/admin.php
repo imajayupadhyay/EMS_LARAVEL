@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\DesignationController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\AttendanceController;
+use App\Http\Controllers\Admin\TaskController;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -60,5 +61,6 @@ Route::post('/locations/delete', [LocationController::class, 'destroy'])->name('
 
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
-
+  
+    Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
 });
