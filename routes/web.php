@@ -4,6 +4,28 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Mail;
+
+Route::get('/test-mail', function() {
+    Mail::raw('This is a test email from EMS system.', function ($message) {
+        $message->to('ajayupadhyay030@gmail.com')   // 👈 yahan tumhara email lagao jaha receive karna hai
+                ->subject('Test Mail - EMS');
+    });
+
+    return 'Test mail sent (if config is correct)!';
+});
+
+
+Route::get('/check-mail-config', function () {
+    return [
+        'mailer' => config('mail.mailer'),
+        'host' => config('mail.host'),
+        'port' => config('mail.port'),
+        'username' => config('mail.username'),
+        'encryption' => config('mail.encryption'),
+        'from' => config('mail.from'),
+    ];
+});
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [

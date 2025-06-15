@@ -5,6 +5,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\LeaveApplication;
 use App\Models\LeaveType;
+use App\Models\AdminNotification;
+use App\Mail\LeaveApplicationNotificationMail;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
 class LeaveApplicationController extends Controller
@@ -32,14 +35,27 @@ class LeaveApplicationController extends Controller
             'reason' => 'required|string|max:500'
         ]);
 
-        LeaveApplication::create([
+        $leaveApplication = LeaveApplication::create([
             'user_id' => auth()->id(),
             'leave_type_id' => $request->leave_type_id,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'reason' => $request->reason,
-            'status' => 'Pending',
+            'status' => 'pending',
         ]);
+
+        // ✅ In-app notification entry
+        AdminNotification::create([
+    'title' => 'New Leave Application',
+    'message' => auth()->user()->name . ' applied for leave from ' . $request->start_date . ' to ' . $request->end_date,
+    'body' => 'Leave application details for admin review.',
+    'is_read' => false,
+]);
+
+
+        // ✅ Send mail to admin
+        $adminEmail = 'ajayupadhyay030@gmail.com'; // You can fetch dynamically if needed
+        Mail::to($adminEmail)->send(new LeaveApplicationNotificationMail($leaveApplication));
 
         return back()->with('success', 'Leave application submitted successfully!');
     }
