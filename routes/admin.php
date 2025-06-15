@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\LeaveTypeController;
 use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\LeaveAssignmentController;
 use App\Http\Controllers\Admin\LeaveApplicationController;
+use App\Http\Controllers\Admin\NotificationController;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -88,6 +89,10 @@ Route::get('/leave-assignments', [LeaveAssignmentController::class, 'index'])->n
 Route::get('/leave-applications', [LeaveApplicationController::class, 'index'])->name('leave-applications.index');
 Route::post('/leave-applications/{leaveApplication}/update-status', [LeaveApplicationController::class, 'updateStatus'])->name('leave-applications.updateStatus');
 Route::post('/leave-applications/{leaveApplication}/update', [LeaveApplicationController::class, 'update'])->name('leave-applications.update');
+
+
+Route::get('/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
+Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.markAsRead');
 
 
 });

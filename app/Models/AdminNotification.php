@@ -12,6 +12,7 @@ class AdminNotification extends Model
     protected $fillable = [
         'title',
         'message',
+        'body',
         'is_read',
     ];
 }

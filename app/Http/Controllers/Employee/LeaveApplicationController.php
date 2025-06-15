@@ -27,24 +27,24 @@ class LeaveApplicationController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'leave_type_id' => 'required|exists:leave_types,id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'required|string|max:500'
-        ]);
+{
+    $request->validate([
+        'leave_type_id' => 'required|exists:leave_types,id',
+        'start_date' => 'required|date',
+        'end_date' => 'required|date|after_or_equal:start_date',
+        'reason' => 'required|string|max:500'
+    ]);
 
-        $leaveApplication = LeaveApplication::create([
-            'user_id' => auth()->id(),
-            'leave_type_id' => $request->leave_type_id,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'reason' => $request->reason,
-            'status' => 'pending',
-        ]);
+    $leaveApplication = LeaveApplication::create([
+        'user_id' => auth()->id(),
+        'leave_type_id' => $request->leave_type_id,
+        'start_date' => $request->start_date,
+        'end_date' => $request->end_date,
+        'reason' => $request->reason,
+        'status' => 'pending',
+    ]);
 
-        // ✅ In-app notification entry
+    // ✅ In-app notification entry (no 'message' column - use 'body')
         AdminNotification::create([
     'title' => 'New Leave Application',
     'message' => auth()->user()->name . ' applied for leave from ' . $request->start_date . ' to ' . $request->end_date,
@@ -52,13 +52,12 @@ class LeaveApplicationController extends Controller
     'is_read' => false,
 ]);
 
+    // ✅ Send mail to admin (works with your mailer setup)
+    $adminEmail = 'ajayupadhyay030@gmail.com'; 
+    Mail::to($adminEmail)->send(new LeaveApplicationNotificationMail($leaveApplication));
 
-        // ✅ Send mail to admin
-        $adminEmail = 'ajayupadhyay030@gmail.com'; // You can fetch dynamically if needed
-        Mail::to($adminEmail)->send(new LeaveApplicationNotificationMail($leaveApplication));
-
-        return back()->with('success', 'Leave application submitted successfully!');
-    }
+    return back()->with('success', 'Leave application submitted successfully!');
+}
 
     public function update(Request $request, LeaveApplication $leave)
     {
