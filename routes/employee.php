@@ -8,7 +8,6 @@ use App\Http\Controllers\Employee\LeaveApplicationController;
 use App\Http\Controllers\Employee\LeaveSummaryController;
 
 
-
 Route::middleware(['auth'])->prefix('employee')->name('employee.')->group(function () {
 
     // Dashboard

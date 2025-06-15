@@ -57,6 +57,11 @@
   >
     📝 Leave Assignments
   </Link>
+  <Link
+  :href="route('admin.leave-applications.index')"
+  class="nav-link"
+  :class="{ active: route().current('admin.leave-applications.index') }"
+>📝 Leave Requests</Link>
 </div>
 
           <!-- Organization Settings -->

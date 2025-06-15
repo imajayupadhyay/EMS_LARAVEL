@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\LeaveTypeController;
 use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\LeaveAssignmentController;
+use App\Http\Controllers\Admin\LeaveApplicationController;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -84,6 +85,9 @@ Route::get('/leave-assignments', [LeaveAssignmentController::class, 'index'])->n
     Route::post('/leave-assignments', [LeaveAssignmentController::class, 'store'])->name('leave-assignments.store');
     Route::post('/leave-assignments/{leaveAssignment}/update', [LeaveAssignmentController::class, 'update'])->name('leave-assignments.update');
     Route::post('/leave-assignments/{leaveAssignment}/delete', [LeaveAssignmentController::class, 'destroy'])->name('leave-assignments.destroy');
+Route::get('/leave-applications', [LeaveApplicationController::class, 'index'])->name('leave-applications.index');
+Route::post('/leave-applications/{leaveApplication}/update-status', [LeaveApplicationController::class, 'updateStatus'])->name('leave-applications.updateStatus');
+Route::post('/leave-applications/{leaveApplication}/update', [LeaveApplicationController::class, 'update'])->name('leave-applications.update');
 
 
 });
