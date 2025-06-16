@@ -11,7 +11,7 @@ class Punch extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'employee_id',
         'punched_in_at',
         'punched_out_at',
         'location',
@@ -24,19 +24,16 @@ class Punch extends Model
         'updated_at' => 'datetime',
     ];
 
-    // Accessor to get type (in/out) dynamically
     public function getTypeAttribute()
     {
         return is_null($this->punched_out_at) ? 'in' : 'out';
     }
 
-    // Relation to user
-    public function user()
+    public function employee()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class);
     }
 
-    // Optional: Scope to get today's punches
     public function scopeToday($query)
     {
         return $query->whereDate('created_at', Carbon::today());

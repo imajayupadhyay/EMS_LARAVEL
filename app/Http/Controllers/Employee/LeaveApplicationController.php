@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
@@ -8,7 +9,6 @@ use App\Models\LeaveType;
 use App\Models\AdminNotification;
 use App\Mail\LeaveApplicationNotificationMail;
 use Illuminate\Support\Facades\Mail;
-use Carbon\Carbon;
 
 class LeaveApplicationController extends Controller
 {
@@ -16,7 +16,7 @@ class LeaveApplicationController extends Controller
     {
         $leaveTypes = LeaveType::all();
         $applications = LeaveApplication::with('leaveType')
-            ->where('user_id', auth()->id())
+            ->where('employee_id', auth()->user()->id)
             ->orderByDesc('created_at')
             ->paginate(10);
 
@@ -27,41 +27,41 @@ class LeaveApplicationController extends Controller
     }
 
     public function store(Request $request)
-{
-    $request->validate([
-        'leave_type_id' => 'required|exists:leave_types,id',
-        'start_date' => 'required|date',
-        'end_date' => 'required|date|after_or_equal:start_date',
-        'reason' => 'required|string|max:500'
-    ]);
+    {
+        $request->validate([
+            'leave_type_id' => 'required|exists:leave_types,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'reason' => 'required|string|max:500'
+        ]);
 
-    $leaveApplication = LeaveApplication::create([
-        'user_id' => auth()->id(),
-        'leave_type_id' => $request->leave_type_id,
-        'start_date' => $request->start_date,
-        'end_date' => $request->end_date,
-        'reason' => $request->reason,
-        'status' => 'pending',
-    ]);
+        $leaveApplication = LeaveApplication::create([
+            'employee_id' => auth()->user()->id,
+            'leave_type_id' => $request->leave_type_id,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'reason' => $request->reason,
+            'status' => 'pending',
+        ]);
 
-    // ✅ In-app notification entry (no 'message' column - use 'body')
+        // In-app notification
         AdminNotification::create([
-    'title' => 'New Leave Application',
-    'message' => auth()->user()->name . ' applied for leave from ' . $request->start_date . ' to ' . $request->end_date,
-    'body' => 'Leave application details for admin review.',
-    'is_read' => false,
-]);
+            'title' => 'New Leave Application',
+            'message' => auth()->user()->first_name . ' ' . auth()->user()->last_name . ' applied for leave from ' . $request->start_date . ' to ' . $request->end_date,
+            'body' => 'Leave application details for admin review.',
+            'is_read' => false,
+        ]);
 
-    // ✅ Send mail to admin (works with your mailer setup)
-    $adminEmail = 'ajayupadhyay030@gmail.com'; 
-    Mail::to($adminEmail)->send(new LeaveApplicationNotificationMail($leaveApplication));
+        // Email to admin
+        $adminEmail = 'ajayupadhyay030@gmail.com'; 
+        Mail::to($adminEmail)->send(new LeaveApplicationNotificationMail($leaveApplication));
 
-    return back()->with('success', 'Leave application submitted successfully!');
-}
+        return back()->with('success', 'Leave application submitted successfully!');
+    }
 
     public function update(Request $request, LeaveApplication $leave)
     {
-        if ($leave->user_id !== auth()->id() || $leave->created_at->toDateString() !== now()->toDateString()) {
+        if ($leave->employee_id !== auth()->user()->id || $leave->created_at->toDateString() !== now()->toDateString()) {
             return back()->with('error', 'You can only edit your today\'s application.');
         }
 
@@ -84,7 +84,7 @@ class LeaveApplicationController extends Controller
 
     public function destroy(LeaveApplication $leave)
     {
-        if ($leave->user_id !== auth()->id() || $leave->created_at->toDateString() !== now()->toDateString()) {
+        if ($leave->employee_id !== auth()->user()->id || $leave->created_at->toDateString() !== now()->toDateString()) {
             return back()->with('error', 'You can only delete your today\'s application.');
         }
 

@@ -1,10 +1,11 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\LeaveAssignment;
 use App\Models\LeaveType;
-use App\Models\User;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,8 +14,8 @@ class LeaveAssignmentController extends Controller
     public function index()
     {
         return Inertia::render('Admin/LeaveAssignments/Index', [
-            'assignments' => LeaveAssignment::with('user', 'leaveType')->paginate(10),
-            'employees' => User::select('id', 'name')->get(),
+            'assignments' => LeaveAssignment::with('employee', 'leaveType')->paginate(10),
+            'employees' => Employee::select('id', 'first_name', 'last_name')->get(),
             'leaveTypes' => LeaveType::select('id', 'name')->get()
         ]);
     }
@@ -22,7 +23,7 @@ class LeaveAssignmentController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'employee_id' => 'required|exists:employees,id',
             'leave_type_id' => 'required|exists:leave_types,id',
             'total_assigned' => 'required|integer|min:0',
             'balance' => 'required|integer|min:0'
@@ -52,4 +53,3 @@ class LeaveAssignmentController extends Controller
         return back()->with('success', 'Leave assignment deleted!');
     }
 }
-

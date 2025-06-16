@@ -12,35 +12,33 @@ class AttendanceController extends Controller
 {
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $employee = auth()->user();
+
         $month = $request->get('month', now()->format('Y-m'));
 
-        $punches = Punch::where('user_id', $user->id)
+        $punches = Punch::where('employee_id', $employee->id)
             ->whereMonth('punched_in_at', Carbon::parse($month)->month)
             ->whereYear('punched_in_at', Carbon::parse($month)->year)
-            ->orderByDesc('punched_in_at')
-            ->get()
-            ->groupBy(fn($item) => $item->punched_in_at->toDateString())
+            ->orderBy('punched_in_at')
+            ->get();
+
+        // Grouping & raw data: we send raw punches & let Vue handle formatting if you want
+        $records = $punches->groupBy(fn ($punch) => $punch->punched_in_at->toDateString())
             ->map(function ($dayPunches) {
-                $firstIn = $dayPunches->min('punched_in_at');
-                $lastOut = $dayPunches->max('punched_out_at');
-
-                $totalSeconds = $dayPunches->sum(function ($punch) {
-                    return $punch->punched_out_at?->diffInSeconds($punch->punched_in_at) ?? 0;
-                });
-
                 return [
-                    'date' => $firstIn->toDateString(),
-                    'first_in' => $firstIn->format('H:i'),
-                    'last_out' => $lastOut?->format('H:i') ?? '--',
-                    'total_hours' => gmdate('H:i', $totalSeconds)
+                    'date' => $dayPunches->first()->punched_in_at->toDateString(),
+                    'first_in' => $dayPunches->min('punched_in_at'),
+                    'last_out' => $dayPunches->max('punched_out_at'),
+                    'total_seconds' => $dayPunches->sum(function ($punch) {
+                        return $punch->punched_out_at?->diffInSeconds($punch->punched_in_at) ?? 0;
+                    }),
                 ];
             })
             ->values();
 
         return Inertia::render('Employee/Attendance/Index', [
-            'records' => $punches,
-            'month' => $month
+            'records' => $records,
+            'month' => $month,
         ]);
     }
 }

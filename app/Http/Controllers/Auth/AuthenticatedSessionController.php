@@ -27,13 +27,14 @@ class AuthenticatedSessionController extends Controller
      * Handle user login request and redirect based on role.
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+{
+    $request->validate([
+        'email' => ['required', 'string', 'email'],
+        'password' => ['required', 'string'],
+    ]);
 
-        if (!Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+    if ($request->role === 'employee') {
+        if (!Auth::guard('employee')->attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
@@ -41,23 +42,30 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = Auth::user();
-
-        if ($user->isAdmin()) {
-            return Inertia::location('/admin/dashboard');
-        }
-
-        if ($user->isManager()) {
-            return Inertia::location('/manager/dashboard');
-        }
-
-        if ($user->isEmployee()) {
-            return Inertia::location('/employee/dashboard');
-        }
-
-        // fallback
-        return Inertia::location('/');
+        return Inertia::location('/employee/dashboard');
     }
+
+    if (!Auth::guard('web')->attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        throw ValidationException::withMessages([
+            'email' => __('auth.failed'),
+        ]);
+    }
+
+    $request->session()->regenerate();
+
+    $user = Auth::guard('web')->user();
+
+    if ($user->isAdmin()) {
+        return Inertia::location('/admin/dashboard');
+    }
+
+    if ($user->isManager()) {
+        return Inertia::location('/manager/dashboard');
+    }
+
+    return Inertia::location('/');
+}
+
 
     /**
      * Log the user out and destroy the session.

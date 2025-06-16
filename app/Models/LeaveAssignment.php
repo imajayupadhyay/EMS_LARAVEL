@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -8,11 +9,11 @@ class LeaveAssignment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'leave_type_id', 'total_assigned', 'balance'];
+    protected $fillable = ['employee_id', 'leave_type_id', 'total_assigned', 'balance'];
 
-    public function user()
+    public function employee()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Employee::class);
     }
 
     public function leaveType()

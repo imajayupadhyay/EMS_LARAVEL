@@ -13,10 +13,10 @@ class PunchController extends Controller
 {
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $employee = Auth::user(); // Assuming your auth is employee-based
         $date = $request->input('date') ?? now()->toDateString();
 
-        $punches = Punch::where('user_id', $user->id)
+        $punches = Punch::where('employee_id', $employee->id)
             ->whereDate('created_at', $date)
             ->orderBy('created_at')
             ->get();
@@ -29,14 +29,14 @@ class PunchController extends Controller
                 'lat' => $location->latitude,
                 'lng' => $location->longitude
             ] : null,
-            'isPunchedIn' => $this->isUserCurrentlyPunchedIn($user->id),
+            'isPunchedIn' => $this->isEmployeeCurrentlyPunchedIn($employee->id),
             'date' => $date
         ]);
     }
 
     public function store(Request $request)
     {
-        $user = Auth::user();
+        $employee = Auth::user();
         $locationInput = $request->input('location');
         $now = now();
 
@@ -56,14 +56,14 @@ class PunchController extends Controller
             return back()->with('error', 'Not in allowed location.');
         }
 
-        $latest = Punch::where('user_id', $user->id)
+        $latest = Punch::where('employee_id', $employee->id)
             ->whereDate('created_at', now())
             ->latest()
             ->first();
 
         if (!$latest || $latest->punched_out_at) {
             Punch::create([
-                'user_id' => $user->id,
+                'employee_id' => $employee->id,
                 'punched_in_at' => $now,
                 'location' => $locationInput,
             ]);
@@ -74,9 +74,9 @@ class PunchController extends Controller
         }
     }
 
-    private function isUserCurrentlyPunchedIn($userId)
+    private function isEmployeeCurrentlyPunchedIn($employeeId)
     {
-        $latest = Punch::where('user_id', $userId)
+        $latest = Punch::where('employee_id', $employeeId)
             ->whereDate('created_at', now())
             ->latest()
             ->first();
@@ -90,11 +90,11 @@ class PunchController extends Controller
         $dLat = deg2rad($lat2 - $lat1);
         $dLon = deg2rad($lon2 - $lon1);
 
-        $a = sin($dLat/2)**2 +
+        $a = sin($dLat / 2) ** 2 +
              cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-             sin($dLon/2)**2;
+             sin($dLon / 2) ** 2;
 
-        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         return $earthRadius * $c;
     }
 }

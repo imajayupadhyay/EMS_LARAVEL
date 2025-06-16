@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\LeaveAssignmentController;
 use App\Http\Controllers\Admin\LeaveApplicationController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\SalaryReportController;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -93,6 +94,9 @@ Route::post('/leave-applications/{leaveApplication}/update', [LeaveApplicationCo
 
 Route::get('/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
 Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.markAsRead');
+
+Route::get('/salary-report', [SalaryReportController::class, 'index'])->name('salary-report.index');
+Route::get('/salary-report/export', [SalaryReportController::class, 'export'])->name('salary-report.export');
 
 
 });

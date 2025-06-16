@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Exports;
 
 use App\Models\Punch;
@@ -17,8 +18,8 @@ class AttendanceExport implements FromView
 
     public function view(): View
     {
-        $query = Punch::with('user.designation')
-            ->when($this->request->employee_id, fn ($q) => $q->where('user_id', $this->request->employee_id))
+        $query = Punch::with('employee.designation')
+            ->when($this->request->employee_id, fn ($q) => $q->where('employee_id', $this->request->employee_id))
             ->when($this->request->date, fn ($q) => $q->whereDate('punched_in_at', $this->request->date))
             ->when($this->request->month, function ($q) {
                 $month = Carbon::parse($this->request->month)->month;
@@ -29,7 +30,7 @@ class AttendanceExport implements FromView
         $punches = $query->get();
 
         $attendance = $punches->groupBy(function ($punch) {
-            return $punch->user_id . '-' . Carbon::parse($punch->punched_in_at)->format('Y-m-d');
+            return $punch->employee_id . '-' . Carbon::parse($punch->punched_in_at)->format('Y-m-d');
         })->map(function ($group) {
             $first = $group->first();
             $total = 0;
@@ -44,7 +45,7 @@ class AttendanceExport implements FromView
             }
 
             return [
-                'user' => $first->user->name,
+                'employee' => $first->employee->first_name . ' ' . $first->employee->last_name,
                 'date' => Carbon::parse($first->punched_in_at)->format('Y-m-d'),
                 'hours' => gmdate('H:i:s', $total),
             ];
