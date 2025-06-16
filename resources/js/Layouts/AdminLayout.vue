@@ -1,57 +1,39 @@
 <template>
-  <div class="min-h-screen flex bg-gray-100 relative">
+  <div class="min-h-screen flex bg-gray-100">
     <!-- Sidebar -->
     <transition name="slide">
       <aside
         v-show="isSidebarOpen || isDesktop"
-        class="fixed md:relative z-30 bg-white w-64 min-h-screen shadow-lg"
+        class="fixed md:relative z-30 bg-white w-64 min-h-screen shadow-lg transition-all duration-300 ease-in-out"
       >
         <div class="flex items-center justify-between p-4 border-b">
           <h2 class="text-xl font-bold text-orange-600">EMS Admin</h2>
-          <button class="md:hidden text-gray-700" @click="isSidebarOpen = false">✕</button>
+          <button class="md:hidden text-gray-700 text-xl" @click="isSidebarOpen = false">✕</button>
         </div>
 
         <nav class="p-4 space-y-4">
-          <div>
-            <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Employee Management</p>
-            <Link :href="route('admin.employees.create')" class="nav-link" :class="{ active: route().current('admin.employees.create') }">👤 Add Employee</Link>
-            <Link :href="route('admin.employees.index')" class="nav-link" :class="{ active: route().current('admin.employees.index') }">📋 Employee List</Link>
-          </div>
-
-          <div>
-            <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Attendance Management</p>
-            <Link :href="route('admin.attendance.index')" class="nav-link" :class="{ active: route().current('admin.attendance.index') }">🕒 Attendance</Link>
-            <Link :href="route('admin.tasks.index')" class="nav-link" :class="{ active: route().current('admin.tasks.index') }">✅ View Tasks</Link>
-          </div>
-
-          <div>
-            <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Leave Management</p>
-            <Link :href="route('admin.leave-types.index')" class="nav-link" :class="{ active: route().current('admin.leave-types.index') }">📌 Leave Types</Link>
-            <Link :href="route('admin.holidays.index')" class="nav-link" :class="{ active: route().current('admin.holidays.index') }">🎊 Holidays</Link>
-            <Link :href="route('admin.leave-assignments.index')" class="nav-link" :class="{ active: route().current('admin.leave-assignments.index') }">📝 Leave Assignments</Link>
-            <Link :href="route('admin.leave-applications.index')" class="nav-link" :class="{ active: route().current('admin.leave-applications.index') }">📝 Leave Requests</Link>
-          </div>
-
-          <div>
-            <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Organization Settings</p>
-            <Link :href="route('admin.departments.index')" class="nav-link" :class="{ active: route().current('admin.departments.index') }">🏢 Departments</Link>
-            <Link :href="route('admin.designations.index')" class="nav-link" :class="{ active: route().current('admin.designations.index') }">🏷️ Designations</Link>
-            <Link :href="route('admin.locations.index')" class="nav-link" :class="{ active: route().current('admin.locations.index') }">📍 Locations</Link>
-          </div>
-          <div>
-  <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Reports</p>
-  <Link :href="route('admin.salary-report.index')" class="nav-link" :class="{ active: route().current('admin.salary-report.index') }">
-    💰 Salary Report
-  </Link>
-</div>
-
+          <template v-for="section in navSections" :key="section.label">
+            <div>
+              <p class="text-xs font-semibold text-gray-500 uppercase mb-1">{{ section.label }}</p>
+              <Link
+                v-for="item in section.links"
+                :key="item.name"
+                :href="item.href"
+                class="nav-link"
+                :class="{ active: route().current(item.route) }"
+              >
+                {{ item.icon }} {{ item.name }}
+              </Link>
+            </div>
+          </template>
         </nav>
       </aside>
     </transition>
 
     <!-- Main Content -->
     <div class="flex-1 flex flex-col">
-      <header class="flex justify-end items-center bg-white shadow p-4 md:px-6 sticky top-0 z-10">
+      <header class="flex justify-between items-center bg-white shadow p-4 sticky top-0 z-20">
+        <button class="md:hidden text-orange-600 text-2xl" @click="isSidebarOpen = true">☰</button>
         <div class="flex items-center gap-4 text-sm relative notification-wrapper">
           <button @click.stop="toggleNotifications" class="relative">
             🔔
@@ -112,15 +94,49 @@ const unreadCount = ref(0)
 const loadingNotifications = ref(false)
 const markingRead = ref(false)
 
-const toggleSidebar = () => {
-  isSidebarOpen.value = !isSidebarOpen.value
-}
+const navSections = [
+  {
+    label: 'Employee Management',
+    links: [
+      { name: 'Add Employee', href: route('admin.employees.create'), route: 'admin.employees.create', icon: '👤' },
+      { name: 'Employee List', href: route('admin.employees.index'), route: 'admin.employees.index', icon: '📋' },
+    ]
+  },
+  {
+    label: 'Attendance Management',
+    links: [
+      { name: 'Attendance', href: route('admin.attendance.index'), route: 'admin.attendance.index', icon: '🕒' },
+      { name: 'View Tasks', href: route('admin.tasks.index'), route: 'admin.tasks.index', icon: '✅' },
+    ]
+  },
+  {
+    label: 'Leave Management',
+    links: [
+      { name: 'Leave Types', href: route('admin.leave-types.index'), route: 'admin.leave-types.index', icon: '📌' },
+      { name: 'Holidays', href: route('admin.holidays.index'), route: 'admin.holidays.index', icon: '🎊' },
+      { name: 'Leave Assignments', href: route('admin.leave-assignments.index'), route: 'admin.leave-assignments.index', icon: '📝' },
+      { name: 'Leave Requests', href: route('admin.leave-applications.index'), route: 'admin.leave-applications.index', icon: '📝' },
+    ]
+  },
+  {
+    label: 'Organization Settings',
+    links: [
+      { name: 'Departments', href: route('admin.departments.index'), route: 'admin.departments.index', icon: '🏢' },
+      { name: 'Designations', href: route('admin.designations.index'), route: 'admin.designations.index', icon: '🏷️' },
+      { name: 'Locations', href: route('admin.locations.index'), route: 'admin.locations.index', icon: '📍' },
+    ]
+  },
+  {
+    label: 'Reports',
+    links: [
+      { name: 'Salary Report', href: route('admin.salary-report.index'), route: 'admin.salary-report.index', icon: '💰' }
+    ]
+  }
+]
 
 const toggleNotifications = async () => {
   showNotifications.value = !showNotifications.value
-  if (showNotifications.value) {
-    await loadNotifications()
-  }
+  if (showNotifications.value) await loadNotifications()
 }
 
 const loadNotifications = async () => {
@@ -150,9 +166,7 @@ const markAllAsRead = async () => {
 }
 
 const handleClickOutside = (e) => {
-  if (!e.target.closest('.notification-wrapper')) {
-    showNotifications.value = false
-  }
+  if (!e.target.closest('.notification-wrapper')) showNotifications.value = false
 }
 
 onMounted(() => {
@@ -162,9 +176,7 @@ onMounted(() => {
   window.addEventListener('click', handleClickOutside)
 
   if (flash.success) {
-    setTimeout(() => {
-      showFlash.value = false
-    }, 3000)
+    setTimeout(() => showFlash.value = false, 3000)
   }
 
   loadNotifications()
