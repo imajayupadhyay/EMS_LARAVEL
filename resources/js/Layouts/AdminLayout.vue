@@ -38,6 +38,13 @@
             <Link :href="route('admin.designations.index')" class="nav-link" :class="{ active: route().current('admin.designations.index') }">🏷️ Designations</Link>
             <Link :href="route('admin.locations.index')" class="nav-link" :class="{ active: route().current('admin.locations.index') }">📍 Locations</Link>
           </div>
+          <div>
+  <p class="text-xs font-semibold text-gray-500 uppercase mb-1">Reports</p>
+  <Link :href="route('admin.salary-report.index')" class="nav-link" :class="{ active: route().current('admin.salary-report.index') }">
+    💰 Salary Report
+  </Link>
+</div>
+
         </nav>
       </aside>
     </transition>
