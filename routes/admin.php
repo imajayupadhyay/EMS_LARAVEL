@@ -30,13 +30,35 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     | Employee Management
     |--------------------------------------------------------------------------
     */
-    Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');
-    Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
+    // Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');
+    // Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
 
-    Route::get('/employees', [EmployeeManageController::class, 'index'])->name('employees.index');
-    Route::get('/employees/manage', [EmployeeManageController::class, 'index'])->name('employees.manage');
-    Route::post('/employees/manage/{employee}', [EmployeeManageController::class, 'update'])->name('employees.manage.update');
-    Route::post('/employees/manage/{employee}/delete', [EmployeeManageController::class, 'destroy'])->name('employees.manage.destroy');
+    // Route::get('/employees', [EmployeeManageController::class, 'index'])->name('employees.index');
+    // Route::get('/employees/manage', [EmployeeManageController::class, 'index'])->name('employees.manage');
+    // Route::post('/employees/manage/{employee}', [EmployeeManageController::class, 'update'])->name('employees.manage.update');
+    // Route::post('/employees/manage/{employee}/delete', [EmployeeManageController::class, 'destroy'])->name('employees.manage.destroy');
+
+
+
+Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');
+Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
+
+    // List employees
+    Route::get('/employees/manage', [EmployeeManageController::class, 'index'])
+        ->name('employees.manage');
+
+    // Update: accept both a POST with _method=PUT or a real PUT
+    Route::match(['post','put'], '/employees/manage/{employee}', [EmployeeManageController::class, 'update'])
+        ->name('employees.manage.update');
+
+    // Delete employee
+    Route::post('/employees/manage/{employee}/delete', [EmployeeManageController::class, 'destroy'])
+        ->name('employees.manage.destroy');
+
+
+Route::get('/employees', function() {
+    return redirect()->route('admin.employees.manage');
+});
 
     /*
     |--------------------------------------------------------------------------

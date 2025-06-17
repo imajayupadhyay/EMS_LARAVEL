@@ -99,7 +99,7 @@ const navSections = [
     label: 'Employee Management',
     links: [
       { name: 'Add Employee', href: route('admin.employees.create'), route: 'admin.employees.create', icon: '👤' },
-      { name: 'Employee List', href: route('admin.employees.index'), route: 'admin.employees.index', icon: '📋' },
+      { name: 'Employee List', href: route('admin.employees.manage'), route: 'admin.employees.manage', icon: '📋' },
     ]
   },
   {

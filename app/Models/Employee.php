@@ -46,3 +46,5 @@ class Employee extends Authenticatable
         return $this->belongsTo(Designation::class);
     }
 }
+
+
