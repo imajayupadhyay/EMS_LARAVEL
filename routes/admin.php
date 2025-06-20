@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\LeaveAssignmentController;
 use App\Http\Controllers\Admin\LeaveApplicationController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\SalaryReportController;
+use App\Http\Controllers\Admin\UserManageController;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -119,6 +120,16 @@ Route::post('/notifications/mark-as-read', [NotificationController::class, 'mark
 
 Route::get('/salary-report', [SalaryReportController::class, 'index'])->name('salary-report.index');
 Route::get('/salary-report/export', [SalaryReportController::class, 'export'])->name('salary-report.export');
+
+// Index + store stay same
+Route::get('/users', [UserManageController::class, 'index'])->name('users.index');
+Route::post('/users', [UserManageController::class, 'store'])->name('users.store');
+
+// Accept POST with method spoofing for update + delete
+Route::post('/users/{user}', [UserManageController::class, 'update'])->name('users.update');
+Route::post('/users/{user}/delete', [UserManageController::class, 'destroy'])->name('users.destroy');
+
+
 
 
 });

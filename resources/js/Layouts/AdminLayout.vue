@@ -124,6 +124,7 @@ const navSections = [
       { name: 'Departments', href: route('admin.departments.index'), route: 'admin.departments.index', icon: '🏢' },
       { name: 'Designations', href: route('admin.designations.index'), route: 'admin.designations.index', icon: '🏷️' },
       { name: 'Locations', href: route('admin.locations.index'), route: 'admin.locations.index', icon: '📍' },
+      { name: 'Admins / Managers', href: route('admin.users.index'), route: 'admin.users.index', icon: '🛡️' },
     ]
   },
   {
