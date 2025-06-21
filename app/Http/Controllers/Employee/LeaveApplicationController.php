@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\LeaveApplication;
 use App\Models\LeaveType;
+use App\Models\LeaveAssignment;
 use App\Models\AdminNotification;
 use App\Mail\LeaveApplicationNotificationMail;
 use Illuminate\Support\Facades\Mail;
@@ -32,9 +33,23 @@ class LeaveApplicationController extends Controller
             'leave_type_id' => 'required|exists:leave_types,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'required|string|max:500'
+            'reason' => 'required|string|max:500',
+            'day_type' => 'required|in:full,half',
         ]);
 
+        $deduct = $request->day_type === 'half' ? 0.5 : 1;
+
+        // Fetch assignment
+        $assignment = LeaveAssignment::where('employee_id', auth()->user()->id)
+            ->where('leave_type_id', $request->leave_type_id)
+            ->first();
+
+        if ($assignment) {
+            $assignment->balance = max(0, $assignment->balance - $deduct);
+            $assignment->save();
+        }
+
+        // Create leave application
         $leaveApplication = LeaveApplication::create([
             'employee_id' => auth()->user()->id,
             'leave_type_id' => $request->leave_type_id,
@@ -42,18 +57,19 @@ class LeaveApplicationController extends Controller
             'end_date' => $request->end_date,
             'reason' => $request->reason,
             'status' => 'pending',
+            'day_type' => $request->day_type,
         ]);
 
-        // In-app notification
+        // Notification
         AdminNotification::create([
             'title' => 'New Leave Application',
-            'message' => auth()->user()->first_name . ' ' . auth()->user()->last_name . ' applied for leave from ' . $request->start_date . ' to ' . $request->end_date,
-            'body' => 'Leave application details for admin review.',
+            'message' => auth()->user()->first_name . ' ' . auth()->user()->last_name . ' applied for a ' . ucfirst($request->day_type) . ' day leave.',
+            'body' => 'Leave from ' . $request->start_date . ' to ' . $request->end_date,
             'is_read' => false,
         ]);
 
-        // Email to admin
-        $adminEmail = 'ajayupadhyay030@gmail.com'; 
+        // Email
+        $adminEmail = 'ajayupadhyay030@gmail.com';
         Mail::to($adminEmail)->send(new LeaveApplicationNotificationMail($leaveApplication));
 
         return back()->with('success', 'Leave application submitted successfully!');
@@ -69,7 +85,8 @@ class LeaveApplicationController extends Controller
             'leave_type_id' => 'required|exists:leave_types,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'required|string|max:500'
+            'reason' => 'required|string|max:500',
+            'day_type' => 'required|in:full,half',
         ]);
 
         $leave->update([
@@ -77,6 +94,7 @@ class LeaveApplicationController extends Controller
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'reason' => $request->reason,
+            'day_type' => $request->day_type,
         ]);
 
         return back()->with('success', 'Leave application updated successfully!');

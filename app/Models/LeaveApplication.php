@@ -15,7 +15,8 @@ class LeaveApplication extends Model
         'start_date',
         'end_date',
         'reason',
-        'status'
+        'status',
+        'day_type'
     ];
 
     /**
