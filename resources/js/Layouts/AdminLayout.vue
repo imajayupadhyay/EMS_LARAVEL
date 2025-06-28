@@ -2,33 +2,39 @@
   <div class="min-h-screen flex bg-gray-100">
     <!-- Sidebar -->
     <transition name="slide">
-      <aside
-        v-show="isSidebarOpen || isDesktop"
-        class="fixed md:relative z-30 bg-white w-64 min-h-screen shadow-lg transition-all duration-300 ease-in-out"
-      >
-        <div class="flex items-center justify-between p-4 border-b">
-          <h2 class="text-xl font-bold text-orange-600">EMS Admin</h2>
-          <button class="md:hidden text-gray-700 text-xl" @click="isSidebarOpen = false">✕</button>
-        </div>
+  <aside
+    v-show="isSidebarOpen || isDesktop"
+    class="fixed md:relative z-30 bg-white w-64 h-screen md:min-h-screen shadow-lg transition-all duration-300 ease-in-out flex flex-col"
+  >
+    <!-- Top Header in Sidebar -->
+    <div class="flex items-center justify-between p-4 border-b flex-shrink-0">
+      <h2 class="text-xl font-bold text-orange-600">EMS Admin</h2>
+      <button class="md:hidden text-gray-700 text-xl" @click="isSidebarOpen = false">✕</button>
+    </div>
 
-        <nav class="p-4 space-y-4">
-          <template v-for="section in navSections" :key="section.label">
-            <div>
-              <p class="text-xs font-semibold text-gray-500 uppercase mb-1">{{ section.label }}</p>
-              <Link
-                v-for="item in section.links"
-                :key="item.name"
-                :href="item.href"
-                class="nav-link"
-                :class="{ active: route().current(item.route) }"
-              >
-                {{ item.icon }} {{ item.name }}
-              </Link>
-            </div>
-          </template>
-        </nav>
-      </aside>
-    </transition>
+    <!-- Scrollable nav container -->
+    <div class="flex-1 overflow-y-auto">
+      <nav class="p-4 space-y-4">
+        <template v-for="section in navSections" :key="section.label">
+          <div>
+            <p class="text-xs font-semibold text-gray-500 uppercase mb-1">{{ section.label }}</p>
+            <Link
+              v-for="item in section.links"
+              :key="item.name"
+              :href="item.href"
+              class="nav-link"
+              :class="{ active: route().current(item.route) }"
+            >
+              {{ item.icon }} {{ item.name }}
+            </Link>
+          </div>
+        </template>
+      </nav>
+    </div>
+  </aside>
+</transition>
+
+
 
     <!-- Main Content -->
     <div class="flex-1 flex flex-col">
