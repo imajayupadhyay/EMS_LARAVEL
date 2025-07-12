@@ -116,11 +116,18 @@ const saveEdit = () => {
 
 const confirmDelete = (id) => {
   if (confirm("Are you sure you want to delete this employee?")) {
-    router.post(route('admin.employees.manage.destroy', id), {
-      _method: 'delete'
-    });
+    router.post(route('admin.employees.manage.destroy', id), {}, {
+  preserveScroll: true,
+  onSuccess: () => {
+    console.log("Employee deleted!");
+  },
+  onError: (err) => {
+    console.error("Failed to delete:", err);
+  }
+});
   }
 };
+
 </script>
 
 <style scoped>
