@@ -16,6 +16,8 @@ use App\Http\Controllers\Admin\LeaveApplicationController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\SalaryReportController;
 use App\Http\Controllers\Admin\UserManageController;
+use App\Http\Controllers\Admin\MarketerTrackingController;
+use App\Http\Controllers\Admin\MarketerController;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 
@@ -25,6 +27,23 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     |--------------------------------------------------------------------------
     */
     Route::get('/dashboard', fn () => Inertia::render('Admin/Dashboard'))->name('dashboard');
+
+
+Route::middleware(['auth','admin'])->prefix('marketers')->name('marketers.')->group(function () {
+    Route::get('/live-locations', [MarketerTrackingController::class, 'liveLocations'])
+        ->name('live');
+    Route::get('/create', fn () => Inertia::render('Admin/Marketers/Create'))
+        ->name('create');
+    Route::get('/', [MarketerController::class, 'index'])->name('index');
+    Route::post('/', [MarketerController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', fn ($id) => Inertia::render('Admin/Marketers/Edit', ['id' => $id]))
+        ->name('edit');
+    Route::get('/{id}', [MarketerController::class, 'show'])->name('show');
+    Route::put('/{id}', [MarketerController::class, 'update'])->name('update');
+    Route::delete('/{id}', [MarketerController::class, 'destroy'])->name('destroy');
+});
+
+
 
     /*
     |--------------------------------------------------------------------------

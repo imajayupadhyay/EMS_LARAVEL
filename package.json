@@ -23,6 +23,7 @@
     "dependencies": {
         "@tinymce/tinymce-vue": "^6.2.0",
         "chart.js": "^4.4.9",
+        "leaflet": "^1.9.4",
         "quill": "^2.0.3",
         "ziggy-js": "^2.5.3"
     }
