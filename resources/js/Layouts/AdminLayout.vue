@@ -108,6 +108,14 @@ const navSections = [
       { name: 'Employee List', href: route('admin.employees.manage'), route: 'admin.employees.manage', icon: '📋' },
     ]
   },
+    {
+    label: 'Marketer Management',   // ✅ New Section
+    links: [
+      { name: 'Add Marketer', href: route('admin.marketers.create'), route: 'admin.marketers.create', icon: '🧑‍💼' },
+      { name: 'Marketer List', href: route('admin.marketers.index'), route: 'admin.marketers.index', icon: '📊' },
+      { name: 'Live Tracking', href: route('admin.marketers.live'), route: 'admin.marketers.live', icon: '🛰️' },
+    ]
+  },
   {
     label: 'Attendance Management',
     links: [
