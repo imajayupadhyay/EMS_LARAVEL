@@ -21,16 +21,16 @@
         <!-- Punched In -->
         <div v-else-if="punchedIn">
           <p class="text-green-600 font-semibold text-lg mb-2">🟢 You are Punched In</p>
-          <p class="text-gray-500 text-sm">Since: {{ punchInTime }}</p>
+          <!-- <p class="text-gray-500 text-sm">Since: {{ punchInTime }}</p>
           <p class="text-gray-700 font-bold mt-2">⏱ Live Timer: {{ liveTimer }}</p>
-          <p class="text-gray-500 text-sm">Today’s Total: {{ totalWorked }}</p>
+          <p class="text-gray-500 text-sm">Today’s Total: {{ totalWorked }}</p> -->
           <button @click="punchOut" class="btn-danger mt-4">Punch Out</button>
         </div>
 
         <!-- Punched Out -->
         <div v-else>
           <p class="text-red-600 font-semibold text-lg mb-2">🔴 You are Punched Out</p>
-          <p class="text-gray-500 text-sm">Today’s Total: {{ totalWorked }}</p>
+          <!-- <p class="text-gray-500 text-sm">Today’s Total: {{ totalWorked }}</p> -->
           <button @click="punchIn" class="btn-primary mt-4">Punch In</button>
         </div>
       </div>
