@@ -20,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-   public function boot()
+public function boot()
 {
     Inertia::share([
         'flash' => function () {
@@ -28,6 +28,18 @@ class AppServiceProvider extends ServiceProvider
                 'success' => Session::get('success'),
                 'error' => Session::get('error'),
             ];
+        },
+        // ✅ Share logged in user (works for both web + employee guards)
+        'auth' => function () {
+            if (auth()->check()) {
+                return ['user' => auth()->user()];
+            }
+
+            if (auth('employee')->check()) {
+                return ['user' => auth('employee')->user()];
+            }
+
+            return ['user' => null];
         },
     ]);
 }

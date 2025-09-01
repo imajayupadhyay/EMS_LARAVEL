@@ -2,29 +2,29 @@
   <div class="max-w-7xl mx-auto p-4">
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-orange-600 mb-2">
-        Welcome, {{ auth?.user?.name || 'Employee' }} 👋
-      </h1>
+  Welcome, {{ auth?.user?.first_name || auth?.user?.name || 'Employee' }} 👋
+</h1>
       <p class="text-gray-600">Here’s a quick summary of your activity.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <!-- Working Days -->
-      <div class="bg-white shadow rounded-lg p-4 text-center hover:shadow-lg transition">
+      <!-- <div class="bg-white shadow rounded-lg p-4 text-center hover:shadow-lg transition">
         <h2 class="text-xl font-semibold text-gray-700">🕒 Total Working Days</h2>
         <p class="text-2xl font-bold text-orange-500 mt-2">{{ workingDays }}</p>
-      </div>
+      </div> -->
 
       <!-- Hours Worked -->
-      <div class="bg-white shadow rounded-lg p-4 text-center hover:shadow-lg transition">
+      <!-- <div class="bg-white shadow rounded-lg p-4 text-center hover:shadow-lg transition">
         <h2 class="text-xl font-semibold text-gray-700">⏱ Total Hours Worked</h2>
         <p class="text-2xl font-bold text-orange-500 mt-2">{{ totalHours }}h</p>
-      </div>
+      </div> -->
 
       <!-- Remaining Leaves -->
-      <div class="bg-white shadow rounded-lg p-4 text-center hover:shadow-lg transition">
+      <!-- <div class="bg-white shadow rounded-lg p-4 text-center hover:shadow-lg transition">
         <h2 class="text-xl font-semibold text-gray-700">🌴 Remaining Leaves</h2>
         <p class="text-2xl font-bold text-orange-500 mt-2">{{ remainingLeaves }}</p>
-      </div>
+      </div> -->
     </div>
 
     <div class="flex flex-col md:flex-row gap-4">

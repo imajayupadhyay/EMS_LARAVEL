@@ -17,6 +17,13 @@ const timer = ref(0);
 let interval = null;
 const todayDate = ref(new Date().toDateString());
 
+// ✅ Popup state
+const popup = ref({ show: false, message: '', type: 'success' });
+const showPopup = (msg, type = 'success') => {
+  popup.value = { show: true, message: msg, type };
+  setTimeout(() => (popup.value.show = false), 3000);
+};
+
 // 🚀 Calculate total worked seconds so far (completed punches + current)
 const calculateTotalWorkedSeconds = () => {
   let total = 0;
@@ -91,10 +98,16 @@ const handlePunch = () => {
   }, {
     preserveScroll: true,
     onSuccess: () => {
-      router.visit(route('employee.punches.index'), { preserveScroll: true });
+      showPopup(props.isPunchedIn ? "You have punched IN ✅" : "You have punched Out 🕒", "success");
+      // ✅ Instead of full visit, just reload props
+      router.reload({ only: ['isPunchedIn', 'punches'] });
+    },
+    onError: () => {
+      showPopup("Something went wrong ❌", "error");
     }
   });
 };
+
 
 // 🚀 Init on load
 onMounted(() => {
@@ -120,14 +133,13 @@ watch(() => props.isPunchedIn, (newVal) => {
       <div class="bg-white shadow-lg rounded-lg p-6">
         <h1 class="text-2xl font-bold text-orange-600 mb-4">Punch In / Punch Out</h1>
 
-        <div class="text-center text-4xl font-mono mb-4 text-gray-800">
-          🕒 {{ displayTimer }}
-        </div>
-
         <button
           @click="handlePunch"
           :disabled="!isWithinRange"
-          class="bg-orange-500 text-white font-semibold px-6 py-3 rounded hover:bg-orange-600 disabled:opacity-50"
+          class="font-semibold px-6 py-3 rounded hover:opacity-90 disabled:opacity-50"
+          :class="props.isPunchedIn 
+            ? 'bg-red-600 text-white' 
+            : 'bg-green-600 text-white'"
         >
           {{ props.isPunchedIn ? 'Punch Out' : 'Punch In' }}
         </button>
@@ -135,7 +147,7 @@ watch(() => props.isPunchedIn, (newVal) => {
         <p v-if="!isWithinRange" class="text-sm text-red-500 mt-2">You must be at the designated location.</p>
       </div>
 
-      <div class="mt-6 bg-white shadow rounded-lg p-4">
+      <!-- <div class="mt-6 bg-white shadow rounded-lg p-4">
         <h2 class="text-lg font-semibold text-gray-700 mb-3">Punch Log</h2>
         <table class="w-full text-sm">
           <thead class="bg-gray-100">
@@ -162,13 +174,28 @@ watch(() => props.isPunchedIn, (newVal) => {
             </tr>
           </tbody>
         </table>
-      </div>
+      </div> -->
     </div>
+
+    <!-- ✅ Popup -->
+    <transition name="fade">
+      <div v-if="popup.show"
+           :class="popup.type === 'error' ? 'bg-red-600' : 'bg-green-600'"
+           class="fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-lg text-white font-semibold z-50">
+        {{ popup.message }}
+      </div>
+    </transition>
   </EmployeeLayout>
 </template>
 
 <style scoped>
 .font-mono {
   font-family: monospace;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 </style>

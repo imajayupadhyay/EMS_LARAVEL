@@ -11,27 +11,29 @@ use Carbon\Carbon;
 class TaskController extends Controller
 {
     public function index(Request $request)
-{
-    $today = now()->toDateString();
-    $query = Task::where('user_id', auth()->id());
+    {
+        $today = now()->toDateString();
+        $employeeId = auth('employee')->id(); // ✅ employee guard
 
-    // Apply filters
-    if ($request->filled('date')) {
-        $query->whereDate('task_date', $request->date);
+        $query = Task::where('employee_id', $employeeId);
+
+        // Filters
+        if ($request->filled('date')) {
+            $query->whereDate('task_date', $request->date);
+        }
+
+        if ($request->filled('keyword')) {
+            $query->where('task_content', 'like', '%' . $request->keyword . '%');
+        }
+
+        $tasks = $query->orderByDesc('task_date')->paginate(5)->withQueryString();
+
+        return Inertia::render('Employee/Tasks/Index', [
+            'today'   => $today,
+            'tasks'   => $tasks,
+            'filters' => $request->only(['date', 'keyword']),
+        ]);
     }
-
-    if ($request->filled('keyword')) {
-        $query->where('task_content', 'like', '%' . $request->keyword . '%');
-    }
-
-    $tasks = $query->orderByDesc('task_date')->paginate(5)->withQueryString();
-
-    return Inertia::render('Employee/Tasks/Index', [
-        'today' => $today,
-        'tasks' => $tasks,
-        'filters' => $request->only(['date', 'keyword']),
-    ]);
-}
 
     public function save(Request $request)
     {
@@ -40,11 +42,12 @@ class TaskController extends Controller
         ]);
 
         $today = Carbon::now()->toDateString();
+        $employeeId = auth('employee')->id(); // ✅ employee guard
 
         if ($request->task_id) {
             // Update
             $task = Task::where('id', $request->task_id)
-                        ->where('user_id', auth()->id())
+                        ->where('employee_id', $employeeId)
                         ->where('task_date', $today)
                         ->firstOrFail();
 
@@ -55,7 +58,7 @@ class TaskController extends Controller
             return redirect()->back()->with('success', 'Task updated successfully.');
         } else {
             // Create
-            $exists = Task::where('user_id', auth()->id())
+            $exists = Task::where('employee_id', $employeeId)
                           ->where('task_date', $today)
                           ->exists();
 
@@ -64,8 +67,8 @@ class TaskController extends Controller
             }
 
             Task::create([
-                'user_id' => auth()->id(),
-                'task_date' => $today,
+                'employee_id'  => $employeeId,
+                'task_date'    => $today,
                 'task_content' => $request->task_content,
             ]);
 
@@ -75,7 +78,9 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
-        if ($task->user_id !== auth()->id() || $task->task_date !== now()->toDateString()) {
+        $employeeId = auth('employee')->id(); // ✅ employee guard
+
+        if ($task->employee_id !== $employeeId || $task->task_date !== now()->toDateString()) {
             return back()->with('error', 'Unauthorized action.');
         }
 
