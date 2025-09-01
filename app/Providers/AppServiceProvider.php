@@ -1,41 +1,35 @@
 <?php
 
 namespace App\Providers;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Session;
 
-use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\ServiceProvider;
 
-class AuthServiceProvider extends ServiceProvider
+class AppServiceProvider extends ServiceProvider
 {
     /**
-     * The model to policy mappings for the application.
-     *
-     * @var array
+     * Register any application services.
      */
-    protected $policies = [
-        // 'App\Models\Model' => 'App\Policies\ModelPolicy',
-    ];
+    public function register(): void
+    {
+        //
+    }
 
     /**
-     * Register any authentication / authorization services.
+     * Bootstrap any application services.
      */
-    public function boot(): void
-    {
-        $this->registerPolicies();
-
-        // Define Admin Gate
-        Gate::define('isAdmin', function ($user) {
-            return $user->role === 'admin';
-        });
-
-        // (Optional) Define Manager Gate if needed
-        Gate::define('isManager', function ($user) {
-            return $user->role === 'manager';
-        });
-
-        // (Optional) Define Employee Gate if needed
-        Gate::define('isEmployee', function ($user) {
-            return $user->role === 'employee';
-        });
-    }
+   public function boot()
+{
+    Inertia::share([
+        'flash' => function () {
+            return [
+                'success' => Session::get('success'),
+                'error' => Session::get('error'),
+            ];
+        },
+    ]);
+}
+    
 }
