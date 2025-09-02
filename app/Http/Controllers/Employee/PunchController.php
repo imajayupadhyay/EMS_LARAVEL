@@ -13,7 +13,7 @@ class PunchController extends Controller
 {
     public function index(Request $request)
     {
-        $employee = Auth::user(); // Assuming your auth is employee-based
+        $employee = Auth::user();
         $date = $request->input('date') ?? now()->toDateString();
 
         $punches = Punch::where('employee_id', $employee->id)
@@ -21,14 +21,16 @@ class PunchController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        $location = Location::first();
+        // ✅ Fetch ALL locations
+        $locations = Location::all()->map(fn($loc) => [
+            'lat' => $loc->latitude,
+            'lng' => $loc->longitude,
+            'name' => $loc->name,
+        ]);
 
         return inertia('Employee/Punches/Index', [
             'punches' => $punches,
-            'allowedLocation' => $location ? [
-                'lat' => $location->latitude,
-                'lng' => $location->longitude
-            ] : null,
+            'allowedLocations' => $locations,
             'isPunchedIn' => $this->isEmployeeCurrentlyPunchedIn($employee->id),
             'date' => $date
         ]);
@@ -45,15 +47,21 @@ class PunchController extends Controller
         }
 
         [$lat, $lng] = explode(',', $locationInput);
-        $allowed = Location::first();
 
-        if (!$allowed) {
-            return back()->with('error', 'Allowed location not set.');
+        // ✅ Check against all saved locations
+        $allowedLocations = Location::all();
+        $isWithinRange = false;
+
+        foreach ($allowedLocations as $loc) {
+            $distance = $this->calculateDistance($lat, $lng, $loc->latitude, $loc->longitude);
+            if ($distance <= 0.3) { // 300 meters = 0.3 km
+                $isWithinRange = true;
+                break;
+            }
         }
 
-        $distance = $this->calculateDistance($lat, $lng, $allowed->latitude, $allowed->longitude);
-        if ($distance > 0.5) {
-            return back()->with('error', 'Not in allowed location.');
+        if (!$isWithinRange) {
+            return back()->with('error', 'You are not within 300m of any allowed office location.');
         }
 
         $latest = Punch::where('employee_id', $employee->id)
@@ -86,7 +94,7 @@ class PunchController extends Controller
 
     private function calculateDistance($lat1, $lon1, $lat2, $lon2)
     {
-        $earthRadius = 6371;
+        $earthRadius = 6371; // in km
         $dLat = deg2rad($lat2 - $lat1);
         $dLon = deg2rad($lon2 - $lon1);
 
@@ -95,6 +103,6 @@ class PunchController extends Controller
              sin($dLon / 2) ** 2;
 
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-        return $earthRadius * $c;
+        return $earthRadius * $c; // distance in km
     }
 }

@@ -78,7 +78,7 @@ const handlePunch = () => {
   }, {
     preserveScroll: true,
     onSuccess: () => {
-      showPopup(props.isPunchedIn ? "You have punched OUT 🕒" : "You have punched IN ✅", "success");
+      showPopup(props.isPunchedIn ? "You have punched IN 🕒" : "You have punched OUT ✅", "success");
       router.reload({ only: ['isPunchedIn', 'punches'] });
     },
     onError: () => {
