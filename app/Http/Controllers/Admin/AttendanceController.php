@@ -19,7 +19,7 @@ class AttendanceController extends Controller
         $selectedDate = $request->get('date');
         $selectedMonth = $request->get('month') ?? now()->format('Y-m');
 
-        $query = Punch::with('employee.designation')
+       $query = Punch::with(['employee.designation', 'employee.department'])
     ->when($selectedEmployee, fn ($q) => $q->where('employee_id', $selectedEmployee))
     ->when($selectedDate, fn ($q) => $q->whereDate('punched_in_at', $selectedDate))
     ->when($selectedMonth, fn ($q) => $q->whereMonth('punched_in_at', Carbon::parse($selectedMonth)->month)
@@ -43,11 +43,14 @@ $attendance = $punches->groupBy(function ($punch) {
     }
 
     return [
-        'employee' => $first->employee->first_name . ' ' . $first->employee->last_name,
-        'date' => Carbon::parse($first->punched_in_at)->format('Y-m-d'),
-        'hours' => gmdate('H:i:s', $total),
+        'employee'     => $first->employee->first_name . ' ' . $first->employee->last_name,
+        'department'   => $first->employee->department->name ?? '—',
+        'designation'  => $first->employee->designation->name ?? '—',
+        'date'         => Carbon::parse($first->punched_in_at)->format('Y-m-d'),
+        'hours'        => gmdate('H:i:s', $total),
     ];
 })->values();
+
 
 
         $totalWorkingDays = $punches->groupBy(function ($punch) {

@@ -65,8 +65,10 @@ const exportExcel = () => {
           <thead class="bg-orange-50 text-orange-700 font-semibold">
             <tr>
               <th class="py-2 px-4 border-b">Employee</th>
+              <th class="py-2 px-4 border-b">Department</th>
+              <th class="py-2 px-4 border-b">Designation</th>
               <th class="py-2 px-4 border-b">Date</th>
-              <th class="py-2 px-4 border-b">Total Hours</th>
+              <th class="py-2 px-4 border-b">Worked Hours</th>
             </tr>
           </thead>
           <tbody>
@@ -76,6 +78,8 @@ const exportExcel = () => {
               class="hover:bg-orange-50 border-b"
             >
               <td class="py-2 px-4">{{ record.employee }}</td>
+              <td class="py-2 px-4">{{ record.department }}</td>
+              <td class="py-2 px-4">{{ record.designation }}</td>
               <td class="py-2 px-4">{{ record.date }}</td>
               <td class="py-2 px-4">{{ record.hours }}</td>
             </tr>
