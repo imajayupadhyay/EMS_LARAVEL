@@ -42,6 +42,13 @@
 </Link>
 
           </div>
+
+          <div>
+            <h3 class="text-xs font-semibold text-gray-500 uppercase mb-1">Company Info</h3>
+            <Link :href="route('employee.holidays.index')" class="nav-link" :class="{ active: isActive('/employee/holidays') }">
+              🎉 Holidays
+            </Link>
+          </div>
         </nav>
       </aside>
     </transition>

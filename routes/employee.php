@@ -7,10 +7,14 @@ use App\Http\Controllers\Employee\TaskController;
 use App\Http\Controllers\Employee\LeaveApplicationController;
 use App\Http\Controllers\Employee\LeaveSummaryController;
 use App\Http\Controllers\Employee\AttendanceController;
+use App\Http\Controllers\Employee\HolidayController;
 
 Route::middleware(['auth:employee'])->prefix('employee')->name('employee.')->group(function () {
     // Dashboard
     Route::get('/dashboard', fn() => Inertia::render('Employee/Dashboard'))->name('dashboard');
+
+Route::get('/holidays', [HolidayController::class, 'index'])->name('holidays.index');
+
 
     // Punch In / Punch Out
     Route::get('/punches', [PunchController::class, 'index'])->name('punches.index');
