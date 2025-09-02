@@ -2,9 +2,17 @@
   <div class="max-w-7xl mx-auto p-4">
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-orange-600 mb-2">
-  Welcome, {{ auth?.user?.first_name || auth?.user?.name || 'Employee' }} 👋
-</h1>
+        Welcome, {{ auth?.user?.first_name || auth?.user?.name || 'Employee' }} 👋
+      </h1>
       <p class="text-gray-600">Here’s a quick summary of your activity.</p>
+    </div>
+
+    <!-- ✅ Punch Status Banner -->
+    <div
+      :class="isPunchedIn ? 'bg-green-100 text-green-700 border-green-400' : 'bg-red-100 text-red-700 border-red-400'"
+      class="border px-4 py-3 rounded mb-6 text-center font-semibold text-lg shadow-sm"
+    >
+      {{ isPunchedIn ? '✅ You are Punched In' : '❌ You are Punched Out' }}
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -53,6 +61,9 @@ const auth = page.props.auth || {}
 const workingDays = page.props.workingDays
 const totalHours = page.props.totalHours
 const remainingLeaves = page.props.remainingLeaves
+
+// ✅ This prop should be passed from backend like on punch page
+const isPunchedIn = page.props.isPunchedIn || false 
 
 defineOptions({ layout: EmployeeLayout })
 

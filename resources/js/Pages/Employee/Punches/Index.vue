@@ -24,7 +24,7 @@ const showPopup = (msg, type = 'success') => {
   setTimeout(() => (popup.value.show = false), 3000);
 };
 
-// 🚀 Calculate total worked seconds so far (completed punches + current)
+// 🚀 Calculate total worked seconds so far
 const calculateTotalWorkedSeconds = () => {
   let total = 0;
   props.punches.forEach(p => {
@@ -37,15 +37,7 @@ const calculateTotalWorkedSeconds = () => {
   return total;
 };
 
-// 🚀 Timer display HH:MM:SS
-const displayTimer = computed(() => {
-  const h = String(Math.floor(timer.value / 3600)).padStart(2, '0');
-  const m = String(Math.floor((timer.value % 3600) / 60)).padStart(2, '0');
-  const s = String(timer.value % 60).padStart(2, '0');
-  return `${h}:${m}:${s}`;
-});
-
-// 🚀 Location logic
+// 🚀 Location logic (commented check for now)
 const getLocation = () => {
   navigator.geolocation.getCurrentPosition(
     (pos) => {
@@ -53,21 +45,11 @@ const getLocation = () => {
         lat: pos.coords.latitude,
         lng: pos.coords.longitude
       };
-      checkProximity();
+      // checkProximity();  // commented for now
+      isWithinRange.value = true; // ✅ force allow for now
     },
     () => isWithinRange.value = false
   );
-};
-
-const checkProximity = () => {
-  if (!userLocation.value || !props.allowedLocation) return;
-  const toRad = (v) => (v * Math.PI) / 180;
-  const earthRadius = 6371;
-  const dLat = toRad(props.allowedLocation.lat - userLocation.value.lat);
-  const dLng = toRad(props.allowedLocation.lng - userLocation.value.lng);
-  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(userLocation.value.lat)) * Math.cos(toRad(props.allowedLocation.lat)) * Math.sin(dLng/2)**2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  isWithinRange.value = (earthRadius * c) <= 0.5;
 };
 
 // 🚀 Timer control
@@ -78,11 +60,7 @@ const startTimer = () => {
     checkDateChange();
   }, 1000);
 };
-
-const stopTimer = () => {
-  if (interval) clearInterval(interval);
-};
-
+const stopTimer = () => { if (interval) clearInterval(interval); };
 const checkDateChange = () => {
   if (new Date().toDateString() !== todayDate.value) {
     todayDate.value = new Date().toDateString();
@@ -94,12 +72,13 @@ const checkDateChange = () => {
 // 🚀 Handle punch in/out
 const handlePunch = () => {
   router.post(route('employee.punches.store'), {
-    location: `${userLocation.value.lat},${userLocation.value.lng}`
+    location: userLocation.value
+      ? `${userLocation.value.lat},${userLocation.value.lng}`
+      : null
   }, {
     preserveScroll: true,
     onSuccess: () => {
-      showPopup(props.isPunchedIn ? "You have punched IN ✅" : "You have punched Out 🕒", "success");
-      // ✅ Instead of full visit, just reload props
+      showPopup(props.isPunchedIn ? "You have punched OUT 🕒" : "You have punched IN ✅", "success");
       router.reload({ only: ['isPunchedIn', 'punches'] });
     },
     onError: () => {
@@ -108,21 +87,17 @@ const handlePunch = () => {
   });
 };
 
-
-// 🚀 Init on load
+// 🚀 Init
 onMounted(() => {
   getLocation();
   timer.value = calculateTotalWorkedSeconds();
   if (props.isPunchedIn) startTimer();
 });
 
-// 🚀 Watch punch state change (reactive on reload)
+// 🚀 Watch punch state
 watch(() => props.isPunchedIn, (newVal) => {
-  if (newVal) {
-    startTimer();
-  } else {
-    stopTimer();
-  }
+  if (newVal) startTimer();
+  else stopTimer();
 });
 </script>
 
@@ -130,51 +105,31 @@ watch(() => props.isPunchedIn, (newVal) => {
   <EmployeeLayout>
     <Head title="Punch In / Out" />
     <div class="max-w-4xl mx-auto p-6">
-      <div class="bg-white shadow-lg rounded-lg p-6">
-        <h1 class="text-2xl font-bold text-orange-600 mb-4">Punch In / Punch Out</h1>
+      
+      <!-- ✅ Status Banner -->
+      <div
+        :class="props.isPunchedIn ? 'bg-green-100 text-green-700 border-green-400' : 'bg-red-100 text-red-700 border-red-400'"
+        class="border px-4 py-3 rounded mb-6 text-center font-semibold text-lg shadow-sm"
+      >
+        {{ props.isPunchedIn ? '✅ You are Punched In' : '❌ You are Punched Out' }}
+      </div>
 
+      <!-- Punch Button -->
+      <div class="bg-white shadow-lg rounded-lg p-6 text-center">
         <button
           @click="handlePunch"
           :disabled="!isWithinRange"
-          class="font-semibold px-6 py-3 rounded hover:opacity-90 disabled:opacity-50"
+          class="font-semibold px-8 py-3 rounded-lg shadow-md hover:opacity-90 disabled:opacity-50 text-lg"
           :class="props.isPunchedIn 
             ? 'bg-red-600 text-white' 
             : 'bg-green-600 text-white'"
         >
           {{ props.isPunchedIn ? 'Punch Out' : 'Punch In' }}
         </button>
-
-        <p v-if="!isWithinRange" class="text-sm text-red-500 mt-2">You must be at the designated location.</p>
+        <p v-if="!isWithinRange" class="text-sm text-red-500 mt-2">
+          You must be at the designated location.
+        </p>
       </div>
-
-      <!-- <div class="mt-6 bg-white shadow rounded-lg p-4">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Punch Log</h2>
-        <table class="w-full text-sm">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="p-2">Punch In</th>
-              <th class="p-2">Punch Out</th>
-              <th class="p-2">Duration</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="p in props.punches" :key="p.id" class="border-t">
-              <td class="p-2">{{ p.punched_in_at ? new Date(p.punched_in_at).toLocaleTimeString() : '—' }}</td>
-              <td class="p-2">{{ p.punched_out_at ? new Date(p.punched_out_at).toLocaleTimeString() : '—' }}</td>
-              <td class="p-2">
-                <span v-if="p.punched_out_at">
-                  {{
-                    Math.floor((new Date(p.punched_out_at) - new Date(p.punched_in_at)) / 3600000)
-                  }}h {{
-                    Math.floor(((new Date(p.punched_out_at) - new Date(p.punched_in_at)) % 3600000) / 60000)
-                  }}m
-                </span>
-                <span v-else>—</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div> -->
     </div>
 
     <!-- ✅ Popup -->
@@ -189,9 +144,6 @@ watch(() => props.isPunchedIn, (newVal) => {
 </template>
 
 <style scoped>
-.font-mono {
-  font-family: monospace;
-}
 .fade-enter-active, .fade-leave-active {
   transition: opacity 0.3s;
 }
