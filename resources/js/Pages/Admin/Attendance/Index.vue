@@ -109,10 +109,10 @@ const closeDetails = () => {
             <th>Punch Out</th>
             <td>{{ details.last_out }}</td>
           </tr>
-          <tr>
+          <!-- <tr>
             <th>Total Worked Hours</th>
             <td>{{ details.hours }}</td>
-          </tr>
+          </tr> -->
         </table>
 
         <button class="btn close" @click="closeDetails">Close</button>
