@@ -1,19 +1,23 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue'
-import { reactive, watch, ref } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { route } from 'ziggy-js'
 
 const props = defineProps({
-  attendance: Array,
+  attendance: Array,   // summary (employee, dept, desig, date, hours)
   employees: Array,
   filters: Object,
   totalWorkingDays: Number,
 })
 
 const filters = reactive({ ...props.filters })
-const selectedRecord = ref(null)
 
+// popup state
+const showDetails = ref(false)
+const details = ref({})
+
+// watch filter changes
 watch(filters, () => {
   router.get(route('admin.attendance.index'), filters, {
     preserveState: true,
@@ -21,15 +25,25 @@ watch(filters, () => {
   })
 })
 
+// export excel
 const exportExcel = () => {
   window.open(route('admin.attendance.export', filters), '_blank')
 }
 
-const openDetails = (record) => {
-  selectedRecord.value = record
+// open details
+const openDetails = async (record) => {
+  try {
+    const response = await fetch(`/admin/attendance/${record.employee_id}/${record.date}`)
+    const data = await response.json()
+    details.value = data
+    showDetails.value = true
+  } catch (e) {
+    console.error("Failed to fetch details", e)
+  }
 }
+
 const closeDetails = () => {
-  selectedRecord.value = null
+  showDetails.value = false
 }
 </script>
 
@@ -39,249 +53,185 @@ const closeDetails = () => {
       <h1 class="page-title">Attendance Summary</h1>
 
       <!-- Flash -->
-      <div v-if="$page.props.flash.success" class="flash-success">
+      <div v-if="$page.props.flash.success" class="flash success">
         {{ $page.props.flash.success }}
       </div>
 
       <!-- Filters -->
       <div class="filters">
-        <select v-model="filters.employee_id" class="filter-input">
+        <select v-model="filters.employee_id">
           <option value="">All Employees</option>
           <option v-for="e in employees" :key="e.id" :value="e.id">
             {{ e.first_name }} {{ e.last_name }}
           </option>
         </select>
 
-        <input type="date" v-model="filters.date" class="filter-input" />
-        <input type="month" v-model="filters.month" class="filter-input" />
+        <input type="date" v-model="filters.date" />
+        <input type="month" v-model="filters.month" />
 
-        <button @click="exportExcel" class="btn-export">
-          Export to Excel
-        </button>
+        <button @click="exportExcel" class="btn export">Export Excel</button>
       </div>
 
       <!-- Total Working Days -->
-      <div class="working-days">
-        <strong>Total Working Days this Month:</strong> {{ totalWorkingDays }}
+      <div class="total-days">
+        Total Working Days this Month: <strong>{{ totalWorkingDays }}</strong>
       </div>
 
-      <!-- Attendance Cards -->
-      <div v-if="attendance.length" class="card-grid">
-        <div v-for="record in attendance" :key="record.date + '-' + record.employee" class="card">
+      <!-- Attendance Container View -->
+      <div v-if="attendance.length" class="cards">
+        <div v-for="record in attendance" :key="record.employee + record.date" class="card">
           <div class="card-header">
-            <h2 class="employee-name">{{ record.employee }}</h2>
+            <h2>{{ record.employee }}</h2>
             <span class="date-tag">{{ record.date }}</span>
           </div>
-          <p class="sub-info">Dept: {{ record.department }} | Desig: {{ record.designation }}</p>
-          <p class="hours"><strong>Worked Hours:</strong> {{ record.hours }}</p>
-          <button class="btn-details" @click="openDetails(record)">View Details</button>
+          <p><strong>Department:</strong> {{ record.department }}</p>
+          <p><strong>Designation:</strong> {{ record.designation }}</p>
+          <p><strong>Worked Hours:</strong> {{ record.hours }}</p>
+
+          <button class="btn view" @click="openDetails(record)">View Details</button>
         </div>
       </div>
 
       <div v-else class="no-records">No attendance records found.</div>
     </div>
 
-    <!-- Modal -->
-    <div v-if="selectedRecord" class="modal-overlay">
-      <div class="modal">
-        <h2 class="modal-title">
-          Attendance Details - {{ selectedRecord.employee }} ({{ selectedRecord.date }})
-        </h2>
+    <!-- Details Popup -->
+    <div v-if="showDetails" class="popup-overlay">
+      <div class="popup">
+        <h2>Attendance Details - {{ details.employee }} ({{ details.date }})</h2>
 
         <table class="details-table">
-  <tr>
-    <th>Punch In</th>
-    <td>{{ selectedRecord.first_in }}</td>
-  </tr>
-  <tr>
-    <th>Punch Out</th>
-    <td>{{ selectedRecord.last_out }}</td>
-  </tr>
-  <tr>
-    <th>Total Worked Hours</th>
-    <td>{{ selectedRecord.hours }}</td>
-  </tr>
-</table>
+          <tr>
+            <th>Punch In</th>
+            <td>{{ details.first_in }}</td>
+          </tr>
+          <tr>
+            <th>Punch Out</th>
+            <td>{{ details.last_out }}</td>
+          </tr>
+          <tr>
+            <th>Total Worked Hours</th>
+            <td>{{ details.hours }}</td>
+          </tr>
+        </table>
 
-
-        <div class="modal-footer">
-          <button class="btn-close" @click="closeDetails">Close</button>
-        </div>
+        <button class="btn close" @click="closeDetails">Close</button>
       </div>
     </div>
   </AdminLayout>
 </template>
 
 <style scoped>
-/* Container */
 .container {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: auto;
   padding: 20px;
 }
 .page-title {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: bold;
-  color: #d35400;
+  color: #e65c00;
   margin-bottom: 20px;
 }
-
-/* Flash */
-.flash-success {
+.flash.success {
   background: #d4edda;
-  border: 1px solid #28a745;
   color: #155724;
-  padding: 10px 15px;
+  padding: 10px;
   border-radius: 6px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
-
-/* Filters */
 .filters {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
   margin-bottom: 20px;
 }
-.filter-input {
-  padding: 8px 10px;
+.filters select,
+.filters input {
+  padding: 8px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  flex: 1;
 }
-.btn-export {
-  background: linear-gradient(90deg, #f39c12, #e67e22);
-  color: white;
-  padding: 8px 15px;
+.btn {
+  padding: 8px 14px;
   border-radius: 6px;
   border: none;
-  font-weight: bold;
   cursor: pointer;
 }
-.btn-export:hover {
-  opacity: 0.9;
+.btn.export {
+  background: #e65c00;
+  color: white;
 }
-
-/* Working Days */
-.working-days {
-  background: #fff3e0;
-  border-left: 4px solid #f39c12;
-  padding: 10px 15px;
-  margin-bottom: 20px;
-  font-size: 15px;
+.btn.view {
+  background: #007bff;
+  color: white;
+  margin-top: 10px;
+}
+.btn.close {
+  background: #dc3545;
+  color: white;
+  margin-top: 15px;
+}
+.total-days {
+  background: #fff3cd;
+  padding: 12px;
   border-radius: 6px;
+  margin-bottom: 20px;
+  font-weight: bold;
 }
-
-/* Cards */
-.card-grid {
+.cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 15px;
 }
 .card {
   background: white;
-  padding: 15px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
-}
-.card:hover {
-  transform: translateY(-3px);
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.employee-name {
-  font-size: 18px;
-  font-weight: bold;
-}
 .date-tag {
-  background: #f39c12;
-  color: white;
-  padding: 3px 10px;
-  border-radius: 15px;
+  background: #ffebcc;
+  padding: 3px 8px;
+  border-radius: 4px;
   font-size: 12px;
 }
-.sub-info {
-  font-size: 14px;
-  color: #555;
-  margin: 5px 0;
+.no-records {
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
 }
-.hours {
-  margin: 5px 0 10px;
-}
-.btn-details {
-  background: #3498db;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-}
-.btn-details:hover {
-  background: #2980b9;
-}
-
-/* Modal */
-.modal-overlay {
+.popup-overlay {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background: rgba(0,0,0,0.6);
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 50;
+  align-items: center;
 }
-.modal {
+.popup {
   background: white;
-  border-radius: 10px;
   padding: 20px;
-  width: 600px;
-  max-width: 90%;
-}
-.modal-title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 15px;
-  color: #d35400;
+  border-radius: 8px;
+  width: 400px;
 }
 .details-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 15px;
+  margin-top: 15px;
 }
 .details-table th,
 .details-table td {
   border: 1px solid #ddd;
   padding: 8px;
-  text-align: center;
 }
 .details-table th {
   background: #f9f9f9;
-  font-weight: bold;
-}
-.modal-footer {
-  text-align: right;
-}
-.btn-close {
-  background: #e74c3c;
-  color: white;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.btn-close:hover {
-  background: #c0392b;
-}
-
-/* No Records */
-.no-records {
-  text-align: center;
-  color: #777;
-  margin-top: 30px;
+  text-align: left;
 }
 </style>

@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\MarketerTrackingController;
 use App\Http\Controllers\Admin\MarketerController;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::get('/attendance/{employeeId}/{date}', [AttendanceController::class, 'details']);
 
     /*
     |--------------------------------------------------------------------------
