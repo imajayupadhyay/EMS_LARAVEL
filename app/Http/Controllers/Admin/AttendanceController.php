@@ -33,6 +33,11 @@ $attendance = $punches->groupBy(function ($punch) {
     $first = $group->first();
     $total = 0;
 
+    // ⏱ Calculate first in and last out
+    $firstIn = $group->min('punched_in_at');
+    $lastOut = $group->max('punched_out_at');
+
+    // ⏱ Calculate total worked hours (your existing logic)
     $pairs = $group->chunk(2);
     foreach ($pairs as $pair) {
         if (isset($pair[0]) && isset($pair[1])) {
@@ -47,9 +52,13 @@ $attendance = $punches->groupBy(function ($punch) {
         'department'   => $first->employee->department->name ?? '—',
         'designation'  => $first->employee->designation->name ?? '—',
         'date'         => Carbon::parse($first->punched_in_at)->format('Y-m-d'),
+        'first_in'     => $firstIn ? Carbon::parse($firstIn)->format('H:i:s') : '—',
+        'last_out'     => $lastOut ? Carbon::parse($lastOut)->format('H:i:s') : '—',
         'hours'        => gmdate('H:i:s', $total),
     ];
 })->values();
+
+
 
 
 

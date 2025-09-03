@@ -1,6 +1,6 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue'
-import { reactive, watch } from 'vue'
+import { reactive, watch, ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { route } from 'ziggy-js'
 
@@ -12,6 +12,7 @@ const props = defineProps({
 })
 
 const filters = reactive({ ...props.filters })
+const selectedRecord = ref(null)
 
 watch(filters, () => {
   router.get(route('admin.attendance.index'), filters, {
@@ -23,80 +24,264 @@ watch(filters, () => {
 const exportExcel = () => {
   window.open(route('admin.attendance.export', filters), '_blank')
 }
+
+const openDetails = (record) => {
+  selectedRecord.value = record
+}
+const closeDetails = () => {
+  selectedRecord.value = null
+}
 </script>
 
 <template>
   <AdminLayout>
-    <div class="max-w-7xl mx-auto py-8 px-4">
-      <h1 class="text-3xl font-bold text-orange-600 mb-6">Attendance Summary</h1>
+    <div class="container">
+      <h1 class="page-title">Attendance Summary</h1>
 
       <!-- Flash -->
-      <div v-if="$page.props.flash.success" class="bg-green-100 border border-green-300 text-green-700 px-4 py-2 mb-4 rounded">
+      <div v-if="$page.props.flash.success" class="flash-success">
         {{ $page.props.flash.success }}
       </div>
 
       <!-- Filters -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <select v-model="filters.employee_id" class="form-select w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:ring-2 focus:ring-orange-500">
+      <div class="filters">
+        <select v-model="filters.employee_id" class="filter-input">
           <option value="">All Employees</option>
-          <option v-for="e in employees" :key="e.id" :value="e.id">{{ e.first_name }} {{ e.last_name }}</option>
+          <option v-for="e in employees" :key="e.id" :value="e.id">
+            {{ e.first_name }} {{ e.last_name }}
+          </option>
         </select>
 
-        <input type="date" v-model="filters.date" class="form-input w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:ring-2 focus:ring-orange-500" />
+        <input type="date" v-model="filters.date" class="filter-input" />
+        <input type="month" v-model="filters.month" class="filter-input" />
 
-        <input type="month" v-model="filters.month" class="form-input w-full rounded border border-gray-300 px-3 py-2 shadow-sm focus:ring-2 focus:ring-orange-500" />
-
-        <button
-          @click="exportExcel"
-          class="bg-gradient-to-r from-orange-400 to-orange-600 text-white px-4 py-2 rounded font-semibold hover:opacity-90 shadow-sm transition"
-        >
+        <button @click="exportExcel" class="btn-export">
           Export to Excel
         </button>
       </div>
 
       <!-- Total Working Days -->
-      <div class="bg-orange-50 border-l-4 border-orange-400 text-orange-700 px-4 py-2 mb-4 rounded shadow-sm">
+      <div class="working-days">
         <strong>Total Working Days this Month:</strong> {{ totalWorkingDays }}
       </div>
 
-      <!-- Attendance Table -->
-      <div v-if="attendance.length" class="overflow-x-auto rounded-lg shadow">
-        <table class="min-w-full text-sm text-left border border-gray-200">
-          <thead class="bg-orange-50 text-orange-700 font-semibold">
-            <tr>
-              <th class="py-2 px-4 border-b">Employee</th>
-              <th class="py-2 px-4 border-b">Department</th>
-              <th class="py-2 px-4 border-b">Designation</th>
-              <th class="py-2 px-4 border-b">Date</th>
-              <th class="py-2 px-4 border-b">Worked Hours</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="record in attendance"
-              :key="record.date + '-' + record.employee"
-              class="hover:bg-orange-50 border-b"
-            >
-              <td class="py-2 px-4">{{ record.employee }}</td>
-              <td class="py-2 px-4">{{ record.department }}</td>
-              <td class="py-2 px-4">{{ record.designation }}</td>
-              <td class="py-2 px-4">{{ record.date }}</td>
-              <td class="py-2 px-4">{{ record.hours }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Attendance Cards -->
+      <div v-if="attendance.length" class="card-grid">
+        <div v-for="record in attendance" :key="record.date + '-' + record.employee" class="card">
+          <div class="card-header">
+            <h2 class="employee-name">{{ record.employee }}</h2>
+            <span class="date-tag">{{ record.date }}</span>
+          </div>
+          <p class="sub-info">Dept: {{ record.department }} | Desig: {{ record.designation }}</p>
+          <p class="hours"><strong>Worked Hours:</strong> {{ record.hours }}</p>
+          <button class="btn-details" @click="openDetails(record)">View Details</button>
+        </div>
       </div>
 
-      <div v-else class="text-gray-500 text-center mt-6">No attendance records found.</div>
+      <div v-else class="no-records">No attendance records found.</div>
+    </div>
+
+    <!-- Modal -->
+    <div v-if="selectedRecord" class="modal-overlay">
+      <div class="modal">
+        <h2 class="modal-title">
+          Attendance Details - {{ selectedRecord.employee }} ({{ selectedRecord.date }})
+        </h2>
+
+        <table class="details-table">
+  <tr>
+    <th>Punch In</th>
+    <td>{{ selectedRecord.first_in }}</td>
+  </tr>
+  <tr>
+    <th>Punch Out</th>
+    <td>{{ selectedRecord.last_out }}</td>
+  </tr>
+  <tr>
+    <th>Total Worked Hours</th>
+    <td>{{ selectedRecord.hours }}</td>
+  </tr>
+</table>
+
+
+        <div class="modal-footer">
+          <button class="btn-close" @click="closeDetails">Close</button>
+        </div>
+      </div>
     </div>
   </AdminLayout>
 </template>
 
 <style scoped>
-table {
-  border-collapse: collapse;
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
-th, td {
-  white-space: nowrap;
+.page-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #d35400;
+  margin-bottom: 20px;
+}
+
+/* Flash */
+.flash-success {
+  background: #d4edda;
+  border: 1px solid #28a745;
+  color: #155724;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.filter-input {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  flex: 1;
+}
+.btn-export {
+  background: linear-gradient(90deg, #f39c12, #e67e22);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 6px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+.btn-export:hover {
+  opacity: 0.9;
+}
+
+/* Working Days */
+.working-days {
+  background: #fff3e0;
+  border-left: 4px solid #f39c12;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  font-size: 15px;
+  border-radius: 6px;
+}
+
+/* Cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+}
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+.card:hover {
+  transform: translateY(-3px);
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.employee-name {
+  font-size: 18px;
+  font-weight: bold;
+}
+.date-tag {
+  background: #f39c12;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+}
+.sub-info {
+  font-size: 14px;
+  color: #555;
+  margin: 5px 0;
+}
+.hours {
+  margin: 5px 0 10px;
+}
+.btn-details {
+  background: #3498db;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btn-details:hover {
+  background: #2980b9;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.modal {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  width: 600px;
+  max-width: 90%;
+}
+.modal-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #d35400;
+}
+.details-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+.details-table th,
+.details-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+.details-table th {
+  background: #f9f9f9;
+  font-weight: bold;
+}
+.modal-footer {
+  text-align: right;
+}
+.btn-close {
+  background: #e74c3c;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-close:hover {
+  background: #c0392b;
+}
+
+/* No Records */
+.no-records {
+  text-align: center;
+  color: #777;
+  margin-top: 30px;
 }
 </style>
