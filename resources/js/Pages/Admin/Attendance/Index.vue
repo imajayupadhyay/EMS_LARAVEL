@@ -5,11 +5,11 @@ import { router } from '@inertiajs/vue3'
 import { route } from 'ziggy-js'
 
 const props = defineProps({
-  todayAttendance: Array, // full, unpaginated "today" (IST) records
+  todayAttendance: Array, // full, unpaginated "today" (IST)
   attendance: Object,     // paginated older entries: { data, links, meta }
   employees: Array,
   filters: Object,
-  totalWorkingDays: Number,
+  totalWorkingDays: [Number, null], // null unless an employee is selected
 })
 
 const filters = reactive({ ...props.filters })
@@ -31,20 +31,20 @@ const exportExcel = () => {
   window.open(route('admin.attendance.export', filters), '_blank')
 }
 
-// Open details
+// Open details (date is IST, backend resolves proper UTC window)
 const openDetails = async (record) => {
   try {
-    const url = route?.('admin.attendance.details')
+    const url = typeof route === 'function' && route().has?.('admin.attendance.details')
       ? route('admin.attendance.details', { employeeId: record.employee_id, date: record.date })
       : `/admin/attendance/${record.employee_id}/${record.date}`
 
-    const response = await fetch(url)
+    const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
     const data = await response.json()
     details.value = data || {}
     showDetails.value = true
   } catch (e) {
     console.error('Failed to fetch details', e)
-    details.value = {}
+    details.value = { not_found: true, date: record.date, intervals: [] }
     showDetails.value = true
   }
 }
@@ -92,9 +92,13 @@ const goTo = (url) => {
         <button @click="exportExcel" class="btn export">Export Excel</button>
       </div>
 
-      <!-- Total Working Days -->
-      <div class="total-days">
-        Total Working Days this Month: <strong>{{ totalWorkingDays }}</strong>
+      <!-- Total Working Days: ONLY when an employee is selected -->
+      <div
+        v-if="filters.employee_id && typeof totalWorkingDays === 'number'"
+        class="total-days"
+      >
+        Total Working Days this Month (Selected Employee):
+        <strong>{{ totalWorkingDays }}</strong>
       </div>
 
       <!-- TODAY (Full list) -->
@@ -161,45 +165,58 @@ const goTo = (url) => {
     <!-- Details Popup -->
     <div v-if="showDetails" class="popup-overlay">
       <div class="popup">
-        <h2>Attendance Details - {{ details.employee }} ({{ details.date }})</h2>
+        <h2 v-if="!details.not_found">
+          Attendance Details - {{ details.employee }} ({{ details.date }})
+        </h2>
+        <h2 v-else>
+          Attendance Details ({{ details.date }})
+        </h2>
 
-        <table class="details-table">
-          <tr>
-            <th>First In</th>
-            <td>{{ details.first_in || '' }}</td>
-          </tr>
-          <tr>
-            <th>Punch Out</th>
-            <td>{{ details.last_out || '' }}</td> <!-- blank if not punched out -->
-          </tr>
-          <tr>
-            <th>Total Worked Hours</th>
-            <td>{{ details.hours || '' }}</td>
-          </tr>
-        </table>
-
-        <h3 style="margin-top:12px;">Punch Intervals</h3>
-        <table class="details-table">
-          <thead>
+        <template v-if="!details.not_found">
+          <table class="details-table">
             <tr>
-              <th>#</th>
-              <th>Punch In</th>
+              <th>First In</th>
+              <td>{{ details.first_in || '' }}</td>
+            </tr>
+            <tr>
               <th>Punch Out</th>
-              <th>Duration</th>
+              <td>{{ details.last_out || '' }}</td> <!-- blank if not punched out -->
             </tr>
-          </thead>
-          <tbody>
-            <tr v-if="!details.intervals || !details.intervals.length">
-              <td colspan="4" style="text-align:center;color:#777;">No intervals</td>
+            <tr>
+              <th>Total Worked Hours</th>
+              <td>{{ details.hours || '' }}</td>
             </tr>
-            <tr v-for="(row, i) in (details.intervals || [])" :key="i">
-              <td>{{ i + 1 }}</td>
-              <td>{{ row.in || '' }}</td>
-              <td>{{ row.out || '' }}</td>      <!-- blank when no out -->
-              <td>{{ row.hours || '' }}</td>    <!-- blank for open interval -->
-            </tr>
-          </tbody>
-        </table>
+          </table>
+
+          <h3 style="margin-top:12px;">Punch Intervals</h3>
+          <table class="details-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Punch In</th>
+                <th>Punch Out</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="!details.intervals || !details.intervals.length">
+                <td colspan="4" style="text-align:center;color:#777;">No intervals</td>
+              </tr>
+              <tr v-for="(row, i) in (details.intervals || [])" :key="i">
+                <td>{{ i + 1 }}</td>
+                <td>{{ row.in || '' }}</td>
+                <td>{{ row.out || '' }}</td>
+                <td>{{ row.hours || '' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </template>
+
+        <template v-else>
+          <div class="no-records" style="margin-top:10px;">
+            No punches found for this date.
+          </div>
+        </template>
 
         <button class="btn close" @click="closeDetails">Close</button>
       </div>
