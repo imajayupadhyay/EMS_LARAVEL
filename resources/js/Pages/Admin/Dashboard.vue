@@ -7,79 +7,55 @@
           <h1 class="welcome text-2xl font-bold text-orange-600">
             Welcome back, <span class="text-emerald-700">{{ adminName }}</span> 👋
           </h1>
-          <p class="text-sm text-gray-500 mt-1">Here’s a snapshot of today's attendance ({{ date }})</p>
+          <p class="text-sm text-gray-500 mt-1">Quick access to admin sections</p>
         </div>
-        <div>
-          <button @click="load" class="btn-refresh inline-flex items-center px-4 py-2 rounded shadow-sm bg-white border hover:bg-gray-50">
+
+        <div class="flex items-center gap-3">
+          <button @click="reloadPage" class="btn-refresh inline-flex items-center px-4 py-2 rounded shadow-sm bg-white border hover:bg-gray-50">
             Refresh
           </button>
         </div>
       </div>
 
-      <!-- Cards -->
-      <div class="cards grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="card p-4 rounded-lg shadow-sm bg-gradient-to-br from-white to-orange-50 border border-orange-100">
-          <div class="label text-sm text-gray-600">Total Employees</div>
-          <div class="value text-3xl font-bold text-gray-800">{{ totals.total_employees }}</div>
-        </div>
-
-        <div class="card p-4 rounded-lg shadow-sm bg-gradient-to-br from-white to-green-50 border border-green-100">
-          <div class="label text-sm text-gray-600">Present Today</div>
-          <div class="value text-3xl font-bold text-green-700">{{ totals.present_today }}</div>
-          <div class="text-xs text-gray-500 mt-2">Active / punched today</div>
-        </div>
-
-        <div class="card p-4 rounded-lg shadow-sm bg-gradient-to-br from-white to-red-50 border border-red-100">
-          <div class="label text-sm text-gray-600">Absent Today</div>
-          <div class="value text-3xl font-bold text-red-600">{{ totals.absent_today }}</div>
-          <div class="text-xs text-gray-500 mt-2">Not punched today</div>
-        </div>
+      <!-- Quick Links header -->
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-lg font-semibold">Quick Links</h2>
+        <p class="text-sm text-gray-500">Open a container to go to that section</p>
       </div>
 
-      <!-- Chart + list -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Chart -->
-        <div class="col-span-1 lg:col-span-1 p-4 rounded-lg bg-white shadow-sm border">
-          <h3 class="text-lg font-semibold mb-3">Present vs Absent</h3>
-          <canvas id="presentChart" width="300" height="200"></canvas>
-          <div class="legend mt-3 text-sm text-gray-600">
-            <div><span class="dot inline-block w-3 h-3 mr-2 rounded-full" :style="{background: '#16a34a'}"></span> Present</div>
-            <div class="mt-1"><span class="dot inline-block w-3 h-3 mr-2 rounded-full" :style="{background: '#ef4444'}"></span> Absent</div>
-          </div>
-        </div>
-
-        <!-- Today's Punches -->
-        <div class="col-span-1 lg:col-span-2 p-4 rounded-lg bg-white shadow-sm border overflow-auto">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-lg font-semibold">Employees who punched today</h3>
-            <div class="text-sm text-gray-500">Showing {{ presentEmployees.length }} entries</div>
+      <!-- Quick Links grouped by section -->
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div v-for="section in navSections" :key="section.label" class="section-card rounded-lg bg-white shadow-sm border overflow-hidden">
+          <div class="section-header px-5 py-4 bg-gray-50 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="section-badge w-10 h-10 rounded-md flex items-center justify-center bg-orange-50 text-orange-600 font-semibold">
+                {{ section.label.charAt(0) }}
+              </div>
+              <div>
+                <div class="text-sm font-semibold">{{ section.label }}</div>
+                <div class="text-xs text-gray-500 mt-0.5">{{ section.links.length }} links</div>
+              </div>
+            </div>
           </div>
 
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">#</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Name</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Last In</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Last Out</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Duration</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Contact</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-100">
-              <tr v-for="(p, idx) in presentEmployees" :key="p.employee_id" class="hover:bg-gray-50">
-                <td class="px-4 py-3 text-sm text-gray-700">{{ idx + 1 }}</td>
-                <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ p.name }}</td>
-                <td class="px-4 py-3 text-sm text-gray-700">{{ p.last_in || '-' }}</td>
-                <td class="px-4 py-3 text-sm text-gray-700">{{ p.last_out || (p.last_in ? 'Still in' : '-') }}</td>
-                <td class="px-4 py-3 text-sm text-gray-700">{{ p.duration_hhmm }}</td>
-                <td class="px-4 py-3 text-sm text-gray-700">{{ p.contact || p.email || '-' }}</td>
-              </tr>
-              <tr v-if="presentEmployees.length === 0">
-                <td colspan="6" class="px-4 py-6 text-center text-sm text-gray-400">No punches recorded for today.</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="section-body p-4 grid gap-3">
+            <Link
+              v-for="link in section.links"
+              :key="link.name"
+              :href="link.href"
+              class="link-card"
+              :class="{ 'link-card-disabled': !link.href }"
+            >
+              <div class="icon text-xl mr-3">{{ link.icon || '🔗' }}</div>
+              <div class="flex-1 min-w-0">
+                <div class="title text-sm font-medium text-gray-900 truncate">{{ link.name }}</div>
+                <div class="subtitle text-xs text-gray-500 mt-0.5 truncate">
+                  Go to {{ link.name.toLowerCase() }}
+                </div>
+              </div>
+              <div class="chev text-gray-300 ml-3">›</div>
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -87,121 +63,108 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref } from 'vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
+import { Link } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
 
-// reactive state
-const adminName = ref('Admin')
-const totals = ref({
-  total_employees: 0,
-  present_today: 0,
-  absent_today: 0
-})
-const presentEmployees = ref([])
-const date = ref('')
+// Admin name (could be passed via Inertia props; fallback to 'Admin')
+const adminName = ref((typeof window !== 'undefined' && window.page && window.page.props && window.page.props.auth && window.page.props.auth.user)
+  ? window.page.props.auth.user.name
+  : 'Admin')
 
-// helper: load data
-async function load() {
-  try {
-    const res = await fetch('/admin/api/dashboard', {
-      credentials: 'same-origin',
-      headers: { 'Accept': 'application/json' }
-    })
-    if (!res.ok) throw new Error('Failed to fetch dashboard data')
-    const json = await res.json()
-
-    adminName.value = json.admin?.name || 'Admin'
-    totals.value = json.totals || totals.value
-    presentEmployees.value = json.present_employees || []
-    date.value = json.date || ''
-
-    // update chart after data loaded
-    renderChart()
-  } catch (err) {
-    console.error(err)
-    // optional: show toast
+// Navigation sections (same set as your sidebar)
+const navSections = [
+  {
+    label: 'Employee Management',
+    links: [
+      { name: 'Add Employee', href: route('admin.employees.create'), icon: '👤' },
+      { name: 'Employee List', href: route('admin.employees.manage'), icon: '📋' },
+    ]
+  },
+  {
+    label: 'Marketer Management',
+    links: [
+      { name: 'Add Marketer', href: route('admin.marketers.create'), icon: '🧑‍💼' },
+      { name: 'Marketer List', href: route('admin.marketers.index'), icon: '📊' },
+      { name: 'Live Tracking', href: route('admin.marketers.live'), icon: '🛰️' },
+    ]
+  },
+  {
+    label: 'Attendance Management',
+    links: [
+      { name: 'Attendance', href: route('admin.attendance.index'), icon: '🕒' },
+      { name: 'View Tasks', href: route('admin.tasks.index'), icon: '✅' },
+    ]
+  },
+  {
+    label: 'Leave Management',
+    links: [
+      { name: 'Leave Types', href: route('admin.leave-types.index'), icon: '📌' },
+      { name: 'Holidays', href: route('admin.holidays.index'), icon: '🎊' },
+      { name: 'Leave Assignments', href: route('admin.leave-assignments.index'), icon: '📝' },
+      { name: 'Leave Requests', href: route('admin.leave-applications.index'), icon: '📝' },
+    ]
+  },
+  {
+    label: 'Organization Settings',
+    links: [
+      { name: 'Departments', href: route('admin.departments.index'), icon: '🏢' },
+      { name: 'Designations', href: route('admin.designations.index'), icon: '🏷️' },
+      { name: 'Locations', href: route('admin.locations.index'), icon: '📍' },
+      { name: 'Admins / Managers', href: route('admin.users.index'), icon: '🛡️' },
+    ]
+  },
+  {
+    label: 'Reports',
+    links: [
+      { name: 'Salary Report', href: route('admin.salary-report.index'), icon: '💰' }
+    ]
   }
+]
+
+function reloadPage() {
+  // Simple refresh if needed
+  window.location.reload()
 }
-
-// Chart rendering — simple Chart.js usage via CDN
-let chartInstance = null
-function renderChart() {
-  // ensure Chart global exists
-  if (typeof Chart === 'undefined') {
-    // try to load Chart.js from CDN
-    const scriptId = 'chartjs-cdn'
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script')
-      script.id = scriptId
-      script.src = 'https://cdn.jsdelivr.net/npm/chart.js'
-      script.onload = () => renderChart()
-      document.head.appendChild(script)
-    }
-    return
-  }
-
-  const ctx = document.getElementById('presentChart').getContext('2d')
-
-  const present = totals.value.present_today || 0
-  const absent = Math.max(0, (totals.value.total_employees || 0) - present)
-
-  const data = {
-    labels: ['Present', 'Absent'],
-    datasets: [{
-      label: 'Employees',
-      data: [present, absent],
-      backgroundColor: [
-        'rgba(22,163,74,0.9)', // green
-        'rgba(239,68,68,0.9)'  // red
-      ]
-    }]
-  }
-
-  if (chartInstance) {
-    chartInstance.data = data
-    chartInstance.update()
-    return
-  }
-
-  chartInstance = new Chart(ctx, {
-    type: 'doughnut',
-    data,
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      }
-    }
-  })
-}
-
-onMounted(() => {
-  load()
-})
 </script>
 
 <style scoped>
-/* Custom styling to beautify the admin dashboard */
-.header .welcome { letter-spacing: 0.2px; }
-.card { min-height: 96px; }
-.value { line-height: 1; }
-.btn-refresh { font-weight: 600; color: #374151; border-color: #e5e7eb; }
-.card .label { color: #6b7280; }
-.card .value { margin-top: 6px; }
+.section-card { border-radius: 10px; overflow: hidden; }
+.section-header { display: flex; align-items: center; justify-content: space-between; }
+.section-badge { font-size: 14px; }
 
-/* make chart canvas responsive height */
-#presentChart { width: 100% !important; height: 180px !important; }
+/* link card inside a section */
+.link-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: all .15s ease;
+  background: white;
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: inherit;
+}
+.link-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+  border-color: rgba(14,165,233,0.06);
+}
+.link-card:focus {
+  outline: 3px solid rgba(99,102,241,0.12);
+}
+.link-card .icon { min-width: 34px; display:flex; align-items:center; justify-content:center; font-size:18px }
 
-/* table styles (light) */
-table th { text-transform: uppercase; letter-spacing: 0.6px; font-size: 11px; }
-table td { font-size: 13px; }
+/* disabled link style (if no href) */
+.link-card-disabled { opacity: 0.6; pointer-events: none; }
 
-/* subtle hover */
-tbody tr:hover { background: rgba(249, 250, 251, 0.9); }
+/* smaller chev */
+.chev { font-size: 18px; color: #cbd5e1 }
 
-/* small screens tweaks */
-@media (max-width: 640px) {
-  .cards { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+/* responsive spacing */
+@media (max-width: 768px) {
+  .section-badge { width: 38px; height: 38px; font-size: 12px; }
 }
 </style>

@@ -26,8 +26,9 @@ Route::get('/attendance/{employeeId}/{date}', [AttendanceController::class, 'det
 
 
 Route::middleware(['auth'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [AdminDashboardController::class, 'stats'])->name('admin.api.dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 });
+
     /*
     |--------------------------------------------------------------------------
     | Dashboard
