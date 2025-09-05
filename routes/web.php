@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Mail;
 | Public Routes
 |--------------------------------------------------------------------------
 */
+
+Route::get('/dashboard', function () {
+    return redirect('admin/dashboard');
+});
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -49,9 +54,9 @@ Route::get('/check-mail-config', function () {
 | Admin/Manager Dashboard (using default web guard)
 |--------------------------------------------------------------------------
 */
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return Inertia::render('Dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------

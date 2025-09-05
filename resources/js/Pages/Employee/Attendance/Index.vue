@@ -46,7 +46,7 @@ function formatDuration(seconds) {
             <th class="border px-2 py-1 text-left">Date</th>
             <th class="border px-2 py-1 text-left">First In</th>
             <th class="border px-2 py-1 text-left">Last Out</th>
-            <th class="border px-2 py-1 text-left">Total Hours</th>
+            <!-- <th class="border px-2 py-1 text-left">Total Hours</th> -->
           </tr>
         </thead>
         <tbody>
@@ -54,7 +54,7 @@ function formatDuration(seconds) {
             <td class="border px-2 py-1">{{ rec.date }}</td>
             <td class="border px-2 py-1">{{ formatTime(rec.first_in) }}</td>
             <td class="border px-2 py-1">{{ formatTime(rec.last_out) }}</td>
-            <td class="border px-2 py-1">{{ formatDuration(rec.total_seconds) }}</td>
+            <!-- <td class="border px-2 py-1">{{ formatDuration(rec.total_seconds) }}</td> -->
           </tr>
         </tbody>
       </table>

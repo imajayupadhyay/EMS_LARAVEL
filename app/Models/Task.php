@@ -7,16 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'employee_id',
         'task_date',
         'task_content',
     ];
 
+    protected $casts = [
+        'task_date' => 'date',
+    ];
+
     public function employee()
-{
-    return $this->belongsTo(Employee::class, 'user_id'); 
+    {
+        return $this->belongsTo(Employee::class, 'employee_id');
+    }
 }
-}
+
