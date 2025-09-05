@@ -18,10 +18,16 @@ use App\Http\Controllers\Admin\SalaryReportController;
 use App\Http\Controllers\Admin\UserManageController;
 use App\Http\Controllers\Admin\MarketerTrackingController;
 use App\Http\Controllers\Admin\MarketerController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
 Route::get('/attendance/{employeeId}/{date}', [AttendanceController::class, 'details']);
 
+
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'stats'])->name('admin.api.dashboard');
+});
     /*
     |--------------------------------------------------------------------------
     | Dashboard
