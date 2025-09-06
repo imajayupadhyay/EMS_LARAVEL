@@ -29,13 +29,106 @@
         <p class="text-sm text-gray-500">{{ emp.email }}</p>
         <p class="text-sm text-gray-600">{{ emp.department?.name }} - {{ emp.designation?.name }}</p>
         <div class="mt-3 flex gap-2">
+          <button @click="openView(emp.id)" class="btn-view">View</button>
           <button @click="startEdit(emp)" class="btn-edit">Edit</button>
           <button @click="confirmDelete(emp.id)" class="btn-delete">Delete</button>
         </div>
       </div>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- View Modal -->
+    <div v-if="viewModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div class="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-auto">
+        <div class="flex items-start justify-between">
+          <h2 class="text-xl font-bold mb-2">Employee Details</h2>
+          <button @click="closeView" class="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+
+        <div v-if="loadingView" class="py-8 text-center">
+          Loading...
+        </div>
+
+        <div v-else>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 class="font-semibold">Name</h3>
+              <p>{{ viewData.full_name || (viewData.first_name + ' ' + (viewData.middle_name ?? '') + ' ' + (viewData.last_name ?? '')) }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Email</h3>
+              <p>{{ viewData.email }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Contact</h3>
+              <p>{{ viewData.contact }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Emergency Contact</h3>
+              <p>{{ viewData.emergency_contact }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Department</h3>
+              <p>{{ viewData.department?.name }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Designation</h3>
+              <p>{{ viewData.designation?.name }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Date of Birth</h3>
+              <p>{{ formatDate(viewData.dob) }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Date of Joining</h3>
+              <p>{{ formatDate(viewData.doj) }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Gender</h3>
+              <p>{{ viewData.gender }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Address</h3>
+              <p>{{ viewData.address }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Work Location</h3>
+              <p>{{ viewData.work_location }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Pay Scale</h3>
+              <p>{{ viewData.pay_scale }}</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">Marital Status</h3>
+              <p>{{ viewData.marital_status }}</p>
+            </div>
+
+            <div v-if="viewData.zip">
+              <h3 class="font-semibold">ZIP</h3>
+              <p>{{ viewData.zip }}</p>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end">
+            <button @click="closeView" class="btn-cancel">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal (unchanged) -->
     <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div class="bg-white rounded-lg p-6 w-full max-w-lg">
         <h2 class="text-xl font-bold mb-4">Edit Employee</h2>
@@ -77,6 +170,7 @@
 <script setup>
 import { reactive, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
+import axios from 'axios';
 
 const props = defineProps({
   employees: Array,
@@ -89,6 +183,10 @@ const filters = reactive({ ...props.filters });
 const showModal = ref(false);
 const editForm = reactive({});
 let currentId = null;
+
+const viewModal = ref(false);
+const viewData = reactive({});
+const loadingView = ref(false);
 
 const applyFilters = () => {
   router.get(route('admin.employees.manage'), filters, {
@@ -117,22 +215,61 @@ const saveEdit = () => {
 const confirmDelete = (id) => {
   if (confirm("Are you sure you want to delete this employee?")) {
     router.post(route('admin.employees.manage.destroy', id), {}, {
-  preserveScroll: true,
-  onSuccess: () => {
-    console.log("Employee deleted!");
-  },
-  onError: (err) => {
-    console.error("Failed to delete:", err);
-  }
-});
+      preserveScroll: true,
+      onSuccess: () => {
+        console.log("Employee deleted!");
+      },
+      onError: (err) => {
+        console.error("Failed to delete:", err);
+      }
+    });
   }
 };
 
+// ---------- View logic ----------
+const openView = async (id) => {
+  viewModal.value = true;
+  loadingView.value = true;
+  // reset previous data
+  Object.keys(viewData).forEach(k => delete viewData[k]);
+
+  try {
+    const res = await axios.get(route('admin.employees.manage.show', id));
+    if (res.data && res.data.success) {
+      Object.assign(viewData, res.data.data || {});
+    } else if (res.data) {
+      Object.assign(viewData, res.data);
+    }
+  } catch (err) {
+    console.error('Failed to load employee:', err);
+    Object.assign(viewData, { first_name: 'Error', email: '', contact: '', department: {}, designation: {} });
+  } finally {
+    loadingView.value = false;
+  }
+};
+
+const closeView = () => {
+  viewModal.value = false;
+  loadingView.value = false;
+  Object.keys(viewData).forEach(k => delete viewData[k]);
+};
+
+const formatDate = (d) => {
+  if (!d) return '';
+  // simple yyyy-mm-dd -> dd-mm-yyyy
+  const dt = (d || '').split('T')[0];
+  const [y,m,day] = dt.split('-') || [];
+  if (!y) return d;
+  return `${day}-${m}-${y}`;
+};
 </script>
 
 <style scoped>
 .input {
   @apply border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-orange-500;
+}
+.btn-view {
+  @apply bg-green-500 text-white text-sm px-3 py-1 rounded hover:bg-green-600;
 }
 .btn-edit {
   @apply bg-blue-500 text-white text-sm px-3 py-1 rounded hover:bg-blue-600;

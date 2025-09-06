@@ -25,9 +25,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 Route::get('/attendance/{employeeId}/{date}', [AttendanceController::class, 'details']);
 
 
-Route::middleware(['auth'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-});
+// Route::middleware(['auth'])->prefix('admin')->group(function () {
+//     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+// });
 
     /*
     |--------------------------------------------------------------------------
@@ -70,6 +70,10 @@ Route::middleware(['auth','admin'])->prefix('marketers')->name('marketers.')->gr
 
 Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');
 Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
+// Show single employee (AJAX JSON) — VIEW modal
+Route::get('/employees/manage/{employee}', [EmployeeManageController::class, 'show'])
+    ->name('employees.manage.show');
+
 
     // List employees
     Route::get('/employees/manage', [EmployeeManageController::class, 'index'])
