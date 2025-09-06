@@ -3,6 +3,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { reactive, ref, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import { route } from 'ziggy-js'
+
 /* Props expected from the controller:
   - todayAttendance: Array
   - attendance: Object (paginated)
@@ -92,6 +93,7 @@ const goTo = (url, ev) => {
 }
 
 /* ---------- Summary cards logic ---------- */
+/* Build map employee_id => today record for quick lookup */
 const todayMap = computed(() => {
   const m = new Map()
   ;(props.todayAttendance || []).forEach(r => {
@@ -111,7 +113,8 @@ const punchedList = computed(() => {
     const emp = (props.employees || []).find(e => Number(e.id) === Number(r.employee_id))
     return {
       id: r.employee_id,
-      name: emp ? `${emp.first_name || ''} ${emp.last_name || ''}`.trim() : (r.employee || `Employee ${r.employee_id}`),
+      // ensure only first + last (ignore middle)
+      name: emp ? `${(emp.first_name || '').trim()} ${(emp.last_name || '').trim()}`.trim() : (r.employee || `Employee ${r.employee_id}`),
       department: r.department || (emp && emp.department ? emp.department.name : ''),
       designation: r.designation || (emp && emp.designation ? emp.designation.name : ''),
       attendanceRecord: r
@@ -125,11 +128,12 @@ const openListModal = (type) => {
     listModalEmployees.value = punchedList.value
   } else {
     listModalTitle.value = `Not Yet Punched (${notPunchedList.value.length})`
+    // Map employees defensively: only first + last name; include department/designation if present
     listModalEmployees.value = notPunchedList.value.map(e => ({
       id: e.id,
-      name: `${e.first_name || ''} ${e.last_name || ''}`.trim(),
-      department: e.department?.name || '',
-      designation: e.designation?.name || '',
+      name: `${(e.first_name || '').trim()} ${(e.last_name || '').trim()}`.trim(),
+      department: (e.department && e.department.name) ? e.department.name : '',
+      designation: (e.designation && e.designation.name) ? e.designation.name : '',
       attendanceRecord: null
     }))
   }
@@ -188,12 +192,14 @@ const onListEmployeeClick = (empItem) => {
         <select v-model="filters.employee_id">
           <option value="">All Employees</option>
           <option v-for="e in employees" :key="e.id" :value="e.id">
-            {{ e.first_name }} {{ e.last_name }}
+            <!-- only first + last shown in dropdown -->
+            {{ `${(e.first_name || '').trim()} ${(e.last_name || '').trim()}`.trim() }}
           </option>
         </select>
 
         <input type="date" v-model="filters.date" />
         <input type="month" v-model="filters.month" />
+
       </div>
 
       <!-- Total Working Days (if employee selected) -->
@@ -292,7 +298,13 @@ const onListEmployeeClick = (empItem) => {
             <li v-for="item in listModalEmployees" :key="item.id" class="employee-item">
               <div class="employee-left">
                 <div class="emp-name">{{ item.name }}</div>
-                <div class="emp-meta">{{ item.department }} · {{ item.designation }}</div>
+
+                <!-- render meta only when present to avoid lone dot -->
+                <div v-if="item.department || item.designation" class="emp-meta">
+                  <span v-if="item.department">{{ item.department }}</span>
+                  <span v-if="item.department && item.designation"> · </span>
+                  <span v-if="item.designation">{{ item.designation }}</span>
+                </div>
               </div>
               <div class="employee-right">
                 <button class="btn view small" @click="onListEmployeeClick(item)">View</button>
@@ -308,64 +320,52 @@ const onListEmployeeClick = (empItem) => {
     </div>
 
     <!-- Details Popup -->
-    <div v-if="showDetails" class="popup-overlay" role="dialog" aria-modal="true">
-      <div class="popup">
-        <h2 v-if="!details.not_found">
-          Attendance Details - {{ details.employee }} ({{ details.date }})
-        </h2>
-        <h2 v-else>
-          Attendance Details ({{ details.date }})
-        </h2>
+   <!-- Details Popup (show only first_in, last_out, total hours) -->
+<div v-if="showDetails" class="popup-overlay" role="dialog" aria-modal="true">
+  <div class="popup">
+    <h2 v-if="!details.not_found">
+      Attendance Details - {{ details.employee }} ({{ details.date }})
+    </h2>
+    <h2 v-else>
+      Attendance Details ({{ details.date }})
+    </h2>
 
-        <template v-if="!details.not_found">
-          <table class="details-table">
-            <tr>
-              <th>First In</th>
-              <td>{{ details.first_in || '' }}</td>
-            </tr>
-            <tr>
-              <th>Punch Out</th>
-              <td>{{ details.last_out || '' }}</td>
-            </tr>
-            <tr>
-              <th>Total Worked Hours</th>
-              <td>{{ details.hours || '' }}</td>
-            </tr>
-          </table>
-
-          <h3 style="margin-top:12px;">Punch Intervals</h3>
-          <table class="details-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Punch In</th>
-                <th>Punch Out</th>
-                <th>Duration</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="!details.intervals || !details.intervals.length">
-                <td colspan="4" style="text-align:center;color:#777;">No intervals</td>
-              </tr>
-              <tr v-for="(row, i) in (details.intervals || [])" :key="i">
-                <td>{{ i + 1 }}</td>
-                <td>{{ row.in || '' }}</td>
-                <td>{{ row.out || '' }}</td>
-                <td>{{ row.hours || '' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </template>
-
-        <template v-else>
-          <div class="no-records" style="margin-top:10px;">
-            No punches found for this date.
-          </div>
-        </template>
-
-        <button class="btn close" @click="closeDetails">Close</button>
-      </div>
+    <!-- show department & designation in details popup (if provided by backend) -->
+    <div v-if="!details.not_found && (details.department || details.designation)" class="emp-meta" style="margin-top:6px;">
+      <span v-if="details.department">{{ details.department }}</span>
+      <span v-if="details.department && details.designation"> · </span>
+      <span v-if="details.designation">{{ details.designation }}</span>
     </div>
+
+    <template v-if="!details.not_found">
+      <table class="details-table">
+        <tr>
+          <th>First In</th>
+          <td>{{ details.first_in || '' }}</td>
+        </tr>
+        <tr>
+          <th>Punch Out</th>
+          <td>{{ details.last_out || '' }}</td>
+        </tr>
+        <tr>
+          <th>Total Worked Hours</th>
+          <td>{{ details.hours || '' }}</td>
+        </tr>
+      </table>
+
+      <!-- NOTE: intervals table intentionally removed as per request -->
+    </template>
+
+    <template v-else>
+      <div class="no-records" style="margin-top:10px;">
+        No punches found for this date.
+      </div>
+    </template>
+
+    <button class="btn close" @click="closeDetails">Close</button>
+  </div>
+</div>
+
   </AdminLayout>
 </template>
 
@@ -593,7 +593,7 @@ const onListEmployeeClick = (empItem) => {
   border-bottom: 1px solid #f3f4f6;
 }
 .employee-left { display: flex; flex-direction: column; }
-.emp-name { font-weight: 600; }
+.emp-name { font-weight: 600; /* remove text-transform if you don't want uppercase */ }
 .emp-meta { color: #6b7280; font-size: 13px; margin-top: 3px; }
 .modal-footer { padding: 12px 20px; border-top: 1px solid #f3f4f6; display:flex; justify-content:flex-end; gap:8px; }
 
