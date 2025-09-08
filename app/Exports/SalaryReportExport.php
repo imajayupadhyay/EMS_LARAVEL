@@ -2,84 +2,52 @@
 
 namespace App\Exports;
 
-use App\Models\Employee;
-use App\Models\Punch;
-use App\Models\LeaveApplication;
-use App\Models\LeaveAssignment;
-use App\Models\Holiday;
-use Carbon\Carbon;
-use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\FromView;
+use App\Models\Salary;
+use App\Models\PayrollPeriod;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class SalaryReportExport implements FromView
+class SalaryReportExport implements FromCollection, WithHeadings
 {
     protected $month;
     protected $year;
 
-    public function __construct($month, $year)
+    public function __construct(int $month, int $year)
     {
         $this->month = $month;
         $this->year = $year;
     }
 
-    public function view(): View
+    public function collection()
     {
-        $holidays = Holiday::whereYear('date', $this->year)
-            ->whereMonth('date', $this->month)
-            ->pluck('date')
-            ->toArray();
+        $period = PayrollPeriod::where('year', $this->year)->where('month', $this->month)->first();
+        if (! $period) {
+            return collect();
+        }
 
-        $daysInMonth = Carbon::create($this->year, $this->month)->daysInMonth;
-        $officeDays = collect(range(1, $daysInMonth))->reduce(function ($carry, $day) use ($holidays) {
-            $date = Carbon::create($this->year, $this->month, $day);
-            if (!$date->isWeekend() && !in_array($date->toDateString(), $holidays)) {
-                return $carry + 1;
-            }
-            return $carry;
-        }, 0);
-
-        $employees = Employee::with(['department', 'designation'])->get();
-
-        $report = $employees->map(function ($employee) {
-            $presentDays = Punch::where('employee_id', $employee->id)
-                ->whereMonth('punched_in_at', $this->month)
-                ->whereYear('punched_in_at', $this->year)
-                ->selectRaw('DATE(punched_in_at) as day')
-                ->groupBy('day')
-                ->get()
-                ->count();
-
-            $approvedLeaves = LeaveApplication::where('employee_id', $employee->id)
-                ->where('status', 'approved')
-                ->where(function ($q) {
-                    $q->whereMonth('start_date', $this->month)
-                      ->whereYear('start_date', $this->year);
-                })
-                ->get();
-
-            $approvedLeaveDays = 0;
-            foreach ($approvedLeaves as $leave) {
-                $approvedLeaveDays += Carbon::parse($leave->start_date)->diffInDays(Carbon::parse($leave->end_date)) + 1;
-            }
-
-            $leaveAssignments = LeaveAssignment::where('employee_id', $employee->id)->get();
-            $totalAssigned = $leaveAssignments->sum('total_assigned');
-            $balance = $leaveAssignments->sum('balance');
-
+        return Salary::with('employee')->where('payroll_period_id', $period->id)->get()->map(function ($s) {
+            // friendly flattened row
             return [
-                'employee' => $employee,
-                'present_days' => $presentDays,
-                'approved_leaves' => $approvedLeaveDays,
-                'leave_assigned' => $totalAssigned,
-                'leave_balance' => $balance
+                'employee_id' => $s->employee_id,
+                'employee_name' => optional($s->employee)->first_name . ' ' . optional($s->employee)->last_name,
+                'gross_salary' => $s->gross_salary,
+                'total_earnings' => $s->total_earnings,
+                'total_deductions' => $s->total_deductions,
+                'net_salary' => $s->net_salary,
+                'status' => $s->status,
+                'present_days' => $s->meta['present_days'] ?? null,
+                'approved_leaves' => $s->meta['approved_leaves'] ?? null,
+                'paid_leave_days' => $s->meta['paid_leave_days'] ?? null,
+                'unpaid_leave_days' => $s->meta['unpaid_leave_days'] ?? null,
+                'absent_days' => $s->meta['absent_days'] ?? null,
             ];
         });
+    }
 
-        return view('exports.salary_report', [
-            'report' => $report,
-            'officeDays' => $officeDays,
-            'month' => $this->month,
-            'year' => $this->year
-        ]);
+    public function headings(): array
+    {
+        return [
+            'employee_id','employee_name','gross_salary','total_earnings','total_deductions','net_salary','status','present_days','approved_leaves','paid_leave_days','unpaid_leave_days','absent_days'
+        ];
     }
 }

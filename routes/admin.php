@@ -150,7 +150,12 @@ Route::get('/notifications', [NotificationController::class, 'index'])->name('ad
 Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.markAsRead');
 
 Route::get('/salary-report', [SalaryReportController::class, 'index'])->name('salary-report.index');
+Route::post('/salary-report/finalize', [SalaryReportController::class, 'finalize'])
+    ->name('salary-report.finalize');
 Route::get('/salary-report/export', [SalaryReportController::class, 'export'])->name('salary-report.export');
+Route::get('/salary-report/payslip/{salary}', [SalaryReportController::class, 'payslip'])
+    ->name('salary-report.payslip')
+    ->whereNumber('salary');
 
 // Index + store stay same
 Route::get('/users', [UserManageController::class, 'index'])->name('users.index');

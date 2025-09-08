@@ -1,50 +1,65 @@
 <?php
+
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;  // change from Model to Authenticatable
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Employee extends Authenticatable
+class Employee extends Model
 {
-    use HasFactory;
-
+    // Add or merge with your existing $fillable
     protected $fillable = [
         'first_name',
         'middle_name',
         'last_name',
         'email',
-        'password',
+        'password',               // <-- allow password mass assignment
+        'contact',
+        'emergency_contact',
         'gender',
         'dob',
         'doj',
         'marital_status',
-        'contact',
-        'emergency_contact',
         'address',
         'zip',
         'pay_scale',
         'work_location',
         'department_id',
         'designation_id',
+        // payroll fields
+        'monthly_salary',
+        'salary_currency',
+        'salary_type',
     ];
 
-    public function setPasswordAttribute($value)
-    {
-        if ($value) {
-            $this->attributes['password'] = Hash::make($value);
-        }
-    }
+    /**
+     * Hide sensitive fields when model is serialized
+     */
+    protected $hidden = [
+        'password',
+    ];
 
-    public function department()
+    protected $casts = [
+        'dob' => 'date',
+        'doj' => 'date',
+        'monthly_salary' => 'decimal:2',
+    ];
+
+    /**
+     * Department relationship (each employee belongs to one department).
+     */
+    public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
     }
 
-    public function designation()
+    /**
+     * Designation relationship (each employee belongs to one designation).
+     */
+    public function designation(): BelongsTo
     {
         return $this->belongsTo(Designation::class);
     }
+
+    // add other relationships (punches, leaves etc.) as needed
 }
-
-

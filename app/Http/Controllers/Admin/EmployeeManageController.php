@@ -8,7 +8,6 @@ use App\Models\Department;
 use App\Models\Designation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Http\JsonResponse;
 
 class EmployeeManageController extends Controller
 {
@@ -43,70 +42,61 @@ class EmployeeManageController extends Controller
     /**
      * Return employee details (AJAX JSON) — safe fields only.
      */
-    /**
- * Return employee details (AJAX JSON) — safe fields only.
- */
-public function show(Employee $employee): \Illuminate\Http\JsonResponse
-{
-    // Eager load relations required by the view
-    $employee->load(['department', 'designation']);
+    public function show(Employee $employee): \Illuminate\Http\JsonResponse
+    {
+        $employee->load(['department', 'designation']);
 
-    // helper to safely format date-like values
-    $formatDate = function ($val) {
-        if ($val === null) return null;
-        // If it's an instance of DateTime/Carbon, format it
-        if ($val instanceof \DateTimeInterface) {
-            return $val->format('Y-m-d');
-        }
-        // If it's a numeric timestamp
-        if (is_numeric($val)) {
-            return \Carbon\Carbon::createFromTimestamp($val)->toDateString();
-        }
-        // If it's already a string in YYYY-MM-DD or similar, try to parse and normalize
-        try {
-            $dt = \Carbon\Carbon::parse($val);
-            return $dt->toDateString();
-        } catch (\Throwable $e) {
-            // fallback: return original string
-            return (string) $val;
-        }
-    };
+        $formatDate = function ($val) {
+            if ($val === null) return null;
+            if ($val instanceof \DateTimeInterface) return $val->format('Y-m-d');
+            if (is_numeric($val)) return \Carbon\Carbon::createFromTimestamp($val)->toDateString();
+            try {
+                return \Carbon\Carbon::parse($val)->toDateString();
+            } catch (\Throwable $e) {
+                return (string) $val;
+            }
+        };
 
-    $data = [
-        'id' => $employee->id,
-        'first_name' => $employee->first_name,
-        'middle_name' => $employee->middle_name,
-        'last_name' => $employee->last_name,
-        'full_name' => trim($employee->first_name . ' ' . ($employee->middle_name ? $employee->middle_name . ' ' : '') . $employee->last_name),
-        'email' => $employee->email,
-        'contact' => $employee->contact,
-        'emergency_contact' => $employee->emergency_contact,
-        'gender' => $employee->gender,
-        'dob' => $formatDate($employee->dob),
-        'doj' => $formatDate($employee->doj),
-        'marital_status' => $employee->marital_status,
-        'address' => $employee->address,
-        'zip' => $employee->zip,
-        'pay_scale' => $employee->pay_scale,
-        'work_location' => $employee->work_location,
-        'department' => $employee->department ? [
-            'id' => $employee->department->id,
-            'name' => $employee->department->name,
-        ] : null,
-        'designation' => $employee->designation ? [
-            'id' => $employee->designation->id,
-            'name' => $employee->designation->name,
-        ] : null,
-        'created_at' => $employee->created_at ? $employee->created_at->toDateTimeString() : null,
-        'updated_at' => $employee->updated_at ? $employee->updated_at->toDateTimeString() : null,
-    ];
+        $data = [
+            'id' => $employee->id,
+            'first_name' => $employee->first_name,
+            'middle_name' => $employee->middle_name,
+            'last_name' => $employee->last_name,
+            'full_name' => trim($employee->first_name . ' ' . ($employee->middle_name ? $employee->middle_name . ' ' : '') . $employee->last_name),
+            'email' => $employee->email,
+            'contact' => $employee->contact,
+            'emergency_contact' => $employee->emergency_contact,
+            'gender' => $employee->gender,
+            'dob' => $formatDate($employee->dob),
+            'doj' => $formatDate($employee->doj),
+            'marital_status' => $employee->marital_status,
+            'address' => $employee->address,
+            'zip' => $employee->zip,
+            'pay_scale' => $employee->pay_scale,
+            'work_location' => $employee->work_location,
 
-    return response()->json([
-        'success' => true,
-        'data' => $data,
-    ]);
-}
+            // Salary / payroll fields
+            'monthly_salary' => $employee->monthly_salary !== null ? (float) $employee->monthly_salary : null,
+            'salary_currency' => $employee->salary_currency ?? 'INR',
+            'salary_type' => $employee->salary_type ?? 'monthly',
 
+            'department' => $employee->department ? [
+                'id' => $employee->department->id,
+                'name' => $employee->department->name,
+            ] : null,
+            'designation' => $employee->designation ? [
+                'id' => $employee->designation->id,
+                'name' => $employee->designation->name,
+            ] : null,
+            'created_at' => $employee->created_at?->toDateTimeString(),
+            'updated_at' => $employee->updated_at?->toDateTimeString(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
 
     /**
      * Update the specified employee in storage.
@@ -124,12 +114,17 @@ public function show(Employee $employee): \Illuminate\Http\JsonResponse
             'marital_status' => 'nullable|string|max:255',
             'contact' => 'required|string|max:255',
             'emergency_contact' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:255',
-            'zip' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:1000',
+            'zip' => 'nullable|string|max:50',
             'pay_scale' => 'nullable|string|max:255',
             'work_location' => 'nullable|string|max:255',
             'department_id' => 'required|exists:departments,id',
             'designation_id' => 'required|exists:designations,id',
+
+            // Salary fields
+            'monthly_salary' => 'nullable|numeric|min:0',
+            'salary_currency' => 'nullable|string|size:3',
+            'salary_type' => 'nullable|in:monthly,daily,hourly',
         ]);
 
         $employee->update($validated);
