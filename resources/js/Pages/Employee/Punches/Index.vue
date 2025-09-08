@@ -74,12 +74,12 @@ const handlePunch = () => {
   router.post(route('employee.punches.store'), {
     location: userLocation.value
       ? `${userLocation.value.lat},${userLocation.value.lng}`
-      : null
+      : null  
   }, {
     preserveScroll: true,
     onSuccess: () => {
       showPopup(props.isPunchedIn ? "You have punched IN 🕒" : "You have punched OUT ✅", "success");
-      router.reload({ only: ['isPunchedIn', 'punches'] });
+      router.reload({ only: ['isPunchedIn', 'punches', 'flash'] }); // reload flash too
     },
     onError: () => {
       showPopup("Something went wrong ❌", "error");
@@ -87,11 +87,15 @@ const handlePunch = () => {
   });
 };
 
+
 // 🚀 Init
 onMounted(() => {
   getLocation();
   timer.value = calculateTotalWorkedSeconds();
   if (props.isPunchedIn) startTimer();
+  if (flash && flash.sunday_incremented) {
+    showPopup('Sunday leave credited +1 ✅', 'success');
+  }
 });
 
 // 🚀 Watch punch state
