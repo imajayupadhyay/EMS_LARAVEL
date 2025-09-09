@@ -152,6 +152,37 @@ watch(() => props.isPunchedIn, (newVal) => {
         </p>
       </div>
 
+      <!-- ✅ Worked Time -->
+      <div class="mt-6 bg-gray-50 border rounded-lg p-4 text-center">
+        <p class="font-semibold text-gray-700">
+          Total Worked Today: {{ Math.floor(timer / 3600) }}h {{ Math.floor((timer % 3600) / 60) }}m {{ timer % 60 }}s
+        </p>
+      </div>
+
+      <!-- ✅ Punch History -->
+      <div class="mt-8">
+        <h3 class="text-lg font-bold mb-3 text-gray-700">Today’s Punches</h3>
+        <table class="w-full border rounded-lg bg-white text-sm shadow">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="p-2 border">#</th>
+              <th class="p-2 border">In Time</th>
+              <th class="p-2 border">Out Time</th>
+              <th class="p-2 border">Location</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(p, idx) in props.punches" :key="p.id" class="hover:bg-gray-50">
+              <td class="p-2 border text-center">{{ idx + 1 }}</td>
+              <td class="p-2 border text-center">{{ p.punched_in_at ? new Date(p.punched_in_at).toLocaleTimeString() : '-' }}</td>
+              <td class="p-2 border text-center">{{ p.punched_out_at ? new Date(p.punched_out_at).toLocaleTimeString() : '-' }}</td>
+              <td class="p-2 border text-center">{{ p.location || '-' }}</td>
+            </tr>
+            <tr v-if="props.punches.length === 0">
+              <td colspan="4" class="p-3 text-center text-gray-500">No punches today</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
