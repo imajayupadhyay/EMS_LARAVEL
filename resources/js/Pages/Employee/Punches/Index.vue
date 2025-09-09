@@ -2,6 +2,8 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { usePage, router, Head } from '@inertiajs/vue3';
 import EmployeeLayout from '@/Layouts/EmployeeLayout.vue';
+    import axios from 'axios';
+import { ref } from 'vue';
 
 const props = defineProps({
   punches: Array,
@@ -70,21 +72,45 @@ const checkDateChange = () => {
 };
 
 // 🚀 Handle punch in/out
-const handlePunch = () => {
-  router.post(route('employee.punches.store'), {
-    location: userLocation.value
-      ? `${userLocation.value.lat},${userLocation.value.lng}`
-      : null  
-  }, {
-    preserveScroll: true,
-    onSuccess: () => {
-      showPopup(props.isPunchedIn ? "You have punched IN 🕒" : "You have punched OUT ✅", "success");
-      router.reload({ only: ['isPunchedIn', 'punches', 'flash'] }); // reload flash too
-    },
-    onError: () => {
-      showPopup("Something went wrong ❌", "error");
+    const isProcessing = ref(false);
+
+const handlePunch = async () => {
+  if (isProcessing.value) return;
+  isProcessing.value = true;
+
+  // Ensure userLocation is a lat,lng string before sending
+  const loc = userLocation.value ? `${userLocation.value.lat},${userLocation.value.lng}` : null;
+
+  if (!loc) {
+    showPopup('Unable to read your location. Allow location permission and try again.', 'error');
+    isProcessing.value = false;
+    return;
+  }
+
+  try {
+    const res = await axios.post(route('employee.punches.store'), { location: loc });
+    // success response (JSON)
+    if (res.data && res.data.success) {
+      showPopup(res.data.message ?? 'Punch saved', 'success');
+      // reload relevant pieces from server via Inertia
+      await router.reload({ only: ['isPunchedIn', 'punches', 'flash'] });
+    } else {
+      // server responded 200 but success:false
+      showPopup((res.data && res.data.message) || 'Punch failed', 'error');
     }
-  });
+  } catch (err) {
+    // show detailed message when available
+    const data = err.response?.data;
+    if (data?.message) {
+      showPopup(data.message, 'error');
+      console.error('Punch error details:', data);
+    } else {
+      showPopup('Something went wrong. Check console for details.', 'error');
+      console.error('Punch error', err);
+    }
+  } finally {
+    isProcessing.value = false;
+  }
 };
 
 
