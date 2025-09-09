@@ -1,13 +1,14 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { usePage, router, Head } from '@inertiajs/vue3';
+import { ref, onMounted, watch } from 'vue';
+import { usePage, Head, router } from '@inertiajs/vue3';
 import EmployeeLayout from '@/Layouts/EmployeeLayout.vue';
-    import axios from 'axios';
-import { ref } from 'vue';
+import axios from 'axios';
+
+defineOptions({ layout: EmployeeLayout });
 
 const props = defineProps({
   punches: Array,
-  allowedLocation: Object,
+  allowedLocations: Array,
   isPunchedIn: Boolean,
   date: String
 });
@@ -18,6 +19,7 @@ const isWithinRange = ref(false);
 const timer = ref(0);
 let interval = null;
 const todayDate = ref(new Date().toDateString());
+const isProcessing = ref(false);
 
 // ✅ Popup state
 const popup = ref({ show: false, message: '', type: 'success' });
@@ -39,7 +41,7 @@ const calculateTotalWorkedSeconds = () => {
   return total;
 };
 
-// 🚀 Location logic (commented check for now)
+// 🚀 Location logic
 const getLocation = () => {
   navigator.geolocation.getCurrentPosition(
     (pos) => {
@@ -47,8 +49,7 @@ const getLocation = () => {
         lat: pos.coords.latitude,
         lng: pos.coords.longitude
       };
-      // checkProximity();  // commented for now
-      isWithinRange.value = true; // ✅ force allow for now
+      isWithinRange.value = true; // ✅ for now we skip precise check
     },
     () => isWithinRange.value = false
   );
@@ -72,47 +73,38 @@ const checkDateChange = () => {
 };
 
 // 🚀 Handle punch in/out
-    const isProcessing = ref(false);
-
 const handlePunch = async () => {
   if (isProcessing.value) return;
   isProcessing.value = true;
 
-  // Ensure userLocation is a lat,lng string before sending
   const loc = userLocation.value ? `${userLocation.value.lat},${userLocation.value.lng}` : null;
-
   if (!loc) {
-    showPopup('Unable to read your location. Allow location permission and try again.', 'error');
+    showPopup('Location unavailable. Allow location permission and try again.', 'error');
     isProcessing.value = false;
     return;
   }
 
   try {
     const res = await axios.post(route('employee.punches.store'), { location: loc });
-    // success response (JSON)
     if (res.data && res.data.success) {
-      showPopup(res.data.message ?? 'Punch saved', 'success');
-      // reload relevant pieces from server via Inertia
+      showPopup(res.data.message, 'success');
       await router.reload({ only: ['isPunchedIn', 'punches', 'flash'] });
     } else {
-      // server responded 200 but success:false
       showPopup((res.data && res.data.message) || 'Punch failed', 'error');
     }
   } catch (err) {
-    // show detailed message when available
     const data = err.response?.data;
     if (data?.message) {
       showPopup(data.message, 'error');
       console.error('Punch error details:', data);
     } else {
-      showPopup('Something went wrong. Check console for details.', 'error');
+      showPopup('Something went wrong ❌', 'error');
       console.error('Punch error', err);
     }
   } finally {
     isProcessing.value = false;
   }
 };
-
 
 // 🚀 Init
 onMounted(() => {
@@ -148,17 +140,50 @@ watch(() => props.isPunchedIn, (newVal) => {
       <div class="bg-white shadow-lg rounded-lg p-6 text-center">
         <button
           @click="handlePunch"
-          :disabled="!isWithinRange"
+          :disabled="!isWithinRange || isProcessing"
           class="font-semibold px-8 py-3 rounded-lg shadow-md hover:opacity-90 disabled:opacity-50 text-lg"
           :class="props.isPunchedIn 
             ? 'bg-red-600 text-white' 
             : 'bg-green-600 text-white'"
         >
-          {{ props.isPunchedIn ? 'Punch Out' : 'Punch In' }}
+          {{ isProcessing ? 'Processing...' : (props.isPunchedIn ? 'Punch Out' : 'Punch In') }}
         </button>
         <p v-if="!isWithinRange" class="text-sm text-red-500 mt-2">
           You must be at the designated location.
         </p>
+      </div>
+
+      <!-- ✅ Worked Time -->
+      <div class="mt-6 bg-gray-50 border rounded-lg p-4 text-center">
+        <p class="font-semibold text-gray-700">
+          Total Worked Today: {{ Math.floor(timer / 3600) }}h {{ Math.floor((timer % 3600) / 60) }}m {{ timer % 60 }}s
+        </p>
+      </div>
+
+      <!-- ✅ Punch History -->
+      <div class="mt-8">
+        <h3 class="text-lg font-bold mb-3 text-gray-700">Today’s Punches</h3>
+        <table class="w-full border rounded-lg bg-white text-sm shadow">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="p-2 border">#</th>
+              <th class="p-2 border">In Time</th>
+              <th class="p-2 border">Out Time</th>
+              <th class="p-2 border">Location</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(p, idx) in props.punches" :key="p.id" class="hover:bg-gray-50">
+              <td class="p-2 border text-center">{{ idx + 1 }}</td>
+              <td class="p-2 border text-center">{{ p.punched_in_at ? new Date(p.punched_in_at).toLocaleTimeString() : '-' }}</td>
+              <td class="p-2 border text-center">{{ p.punched_out_at ? new Date(p.punched_out_at).toLocaleTimeString() : '-' }}</td>
+              <td class="p-2 border text-center">{{ p.location || '-' }}</td>
+            </tr>
+            <tr v-if="props.punches.length === 0">
+              <td colspan="4" class="p-3 text-center text-gray-500">No punches today</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
