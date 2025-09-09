@@ -4,7 +4,6 @@ import { usePage, Head, router } from '@inertiajs/vue3';
 import EmployeeLayout from '@/Layouts/EmployeeLayout.vue';
 import axios from 'axios';
 
-defineOptions({ layout: EmployeeLayout });
 
 const props = defineProps({
   punches: Array,
