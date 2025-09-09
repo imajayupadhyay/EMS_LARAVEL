@@ -99,12 +99,12 @@ class PunchController extends Controller
         // Count punches created for today BEFORE we create the new punch.
         // This is used to ensure we auto-credit Sunday leave only once per day (first punch).
         $todaysPunchCount = Punch::where('employee_id', $employee->id)
-            ->whereDate('created_at', now())
+            ->whereDate('punched_in_at', now()->toDateString())
             ->count();
 
         // Get latest punch record for today to decide in/out behavior
         $latest = Punch::where('employee_id', $employee->id)
-            ->whereDate('created_at', now())
+            ->whereDate('punched_in_at', now()->toDateString())
             ->latest()
             ->first();
 
@@ -193,7 +193,7 @@ class PunchController extends Controller
     private function isEmployeeCurrentlyPunchedIn($employeeId)
     {
         $latest = Punch::where('employee_id', $employeeId)
-            ->whereDate('created_at', now())
+            ->whereDate('punched_in_at', now()->toDateString())
             ->latest()
             ->first();
 
