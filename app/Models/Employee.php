@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Hash;
 
-class Employee extends Model
+class Employee extends Authenticatable
 {
-    // Add or merge with your existing $fillable
+    use Notifiable;
+
     protected $fillable = [
         'first_name',
         'middle_name',
         'last_name',
         'email',
-        'password',               // <-- allow password mass assignment
+        'password',
         'contact',
         'emergency_contact',
         'gender',
@@ -37,6 +40,7 @@ class Employee extends Model
      */
     protected $hidden = [
         'password',
+        'remember_token',
     ];
 
     protected $casts = [
@@ -61,5 +65,19 @@ class Employee extends Model
         return $this->belongsTo(Designation::class);
     }
 
-    // add other relationships (punches, leaves etc.) as needed
+    /**
+     * Defensive mutator: hash password only when required.
+     * If you already Hash::make() in controller, this will not double-hash
+     * because Hash::needsRehash() returns false for already hashed values.
+     */
+    public function setPasswordAttribute($value)
+    {
+        if ($value === null) return;
+
+        if (Hash::needsRehash($value)) {
+            $this->attributes['password'] = Hash::make($value);
+        } else {
+            $this->attributes['password'] = $value;
+        }
+    }
 }
