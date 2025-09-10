@@ -1,42 +1,96 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { usePage, Head, router } from '@inertiajs/vue3';
 import EmployeeLayout from '@/Layouts/EmployeeLayout.vue';
 import axios from 'axios';
 
 const props = defineProps({
-  // keep only what's needed in the simplified view
-  isPunchedIn: Boolean,
-  // punches prop is accepted but not used to render a table in this version
-  punches: {
-    type: Array,
-    default: () => []
-  }
+  isPunchedIn: Boolean
 });
 
 const flash = usePage().props.flash || {};
 const isProcessing = ref(false);
 
-// Popup state
+// location
+const userLocation = ref(null); // { latitude, longitude, formatted }
+
+// popup
 const popup = ref({ show: false, message: '', type: 'success' });
 const showPopup = (msg, type = 'success') => {
   popup.value = { show: true, message: msg, type };
-  // auto-hide
   setTimeout(() => (popup.value.show = false), 3000);
 };
 
+// get geolocation and format it safely
+const getLocation = () => {
+  if (!('geolocation' in navigator)) {
+    showPopup('Geolocation not supported by this browser.', 'error');
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = Number(pos.coords.latitude);
+      const lng = Number(pos.coords.longitude);
+      // format to fixed length decimals to avoid locale-variations and unnecessary precision
+      const formatted = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+      userLocation.value = { latitude: lat, longitude: lng, formatted };
+    },
+    (err) => {
+      console.error('Geolocation error:', err);
+      // provide helpful message — user likely denied permission
+      showPopup('Location permission denied or unavailable. Allow location to punch in/out.', 'error');
+      userLocation.value = null;
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  );
+};
+
+// call location on mount so the button becomes enabled quickly
+onMounted(() => {
+  getLocation();
+
+  // sunday flash (if backend set flash)
+  if (flash && flash.sunday_incremented) {
+    showPopup('Sunday leave credited +1 ✅', 'success');
+  }
+});
+
+// handle punch
 const handlePunch = async () => {
   if (isProcessing.value) return;
+
+  if (!userLocation.value || !userLocation.value.formatted) {
+    // attempt to get location once more before failing
+    showPopup('Fetching location... please allow permission.', 'error');
+    getLocation();
+    return;
+  }
+
   isProcessing.value = true;
 
+  // Prepare a robust payload to match common backend expectations
+  const payload = {
+    location: userLocation.value.formatted,      // "lat,lng" string
+    latitude: userLocation.value.latitude,       // number
+    longitude: userLocation.value.longitude      // number
+  };
+
   try {
-    const res = await axios.post(route('employee.punches.store'));
+    const res = await axios.post(route('employee.punches.store'), payload);
+
     if (res.data && res.data.success) {
-      showPopup(res.data.message || 'Action successful', 'success');
-      // reload only the properties we care about
+      showPopup(res.data.message || 'Punch successful ✅', 'success');
+      // reload only needed props
       await router.reload({ only: ['isPunchedIn', 'punches', 'flash'] });
     } else {
+      // backend returned non-success payload
       showPopup((res.data && res.data.message) || 'Punch failed', 'error');
+      console.error('Punch response:', res.data);
     }
   } catch (err) {
     const data = err.response?.data;
@@ -51,11 +105,6 @@ const handlePunch = async () => {
     isProcessing.value = false;
   }
 };
-
-// show sunday flash if any
-if (flash && flash.sunday_incremented) {
-  showPopup('Sunday leave credited +1 ✅', 'success');
-}
 </script>
 
 <template>
@@ -74,33 +123,24 @@ if (flash && flash.sunday_incremented) {
       <div class="bg-white shadow-lg rounded-lg p-6 text-center">
         <button
           @click="handlePunch"
-          :disabled="isProcessing"
+          :disabled="isProcessing || !userLocation"
           class="font-semibold px-8 py-3 rounded-lg shadow-md hover:opacity-90 disabled:opacity-50 text-lg"
           :class="props.isPunchedIn ? 'bg-red-600 text-white' : 'bg-green-600 text-white'"
         >
           {{ isProcessing ? 'Processing...' : (props.isPunchedIn ? 'Punch Out' : 'Punch In') }}
         </button>
 
-        <!-- optional guidance -->
-        <p class="text-sm text-gray-500 mt-3">
-          Click to {{ props.isPunchedIn ? 'punch out' : 'punch in' }}. If something fails, you will see an error popup.
+        <p class="text-sm mt-3">
+          <span v-if="!userLocation" class="text-red-500">
+            Location required — please allow location permission in your browser.
+          </span>
+          <span v-else class="text-gray-500">
+            Location detected: {{ userLocation.formatted }}
+          </span>
         </p>
       </div>
 
-      <!-- lightweight punches summary (optional) -->
-      <div v-if="props.punches && props.punches.length" class="mt-6 bg-gray-50 border rounded-lg p-4">
-        <p class="font-medium text-gray-700 mb-2">Today’s punches (summary)</p>
-        <ul class="text-sm text-gray-600">
-          <li v-for="(p, i) in props.punches" :key="p.id" class="py-1">
-            {{ i + 1 }}.
-            <span v-if="p.punched_in_at">In: {{ new Date(p.punched_in_at).toLocaleTimeString() }}</span>
-            <span v-else>In: -</span>
-            &nbsp;|&nbsp;
-            <span v-if="p.punched_out_at">Out: {{ new Date(p.punched_out_at).toLocaleTimeString() }}</span>
-            <span v-else>Out: -</span>
-          </li>
-        </ul>
-      </div>
+      <!-- NOTE: The daily punches summary and the worked-time table have been removed as requested -->
     </div>
 
     <!-- Popup -->
