@@ -42,6 +42,10 @@ Route::middleware(['auth','admin'])->prefix('marketers')->name('marketers.')->gr
         ->name('live');
     Route::get('/create', fn () => Inertia::render('Admin/Marketers/Create'))
         ->name('create');
+Route::get('/{id}/latest-location', [MarketerTrackingController::class, 'latestLocation'])
+    ->name('latest-location');
+        Route::get('/{id}/live', [MarketerTrackingController::class, 'fetchLiveLocation'])
+    ->name('fetchLiveLocation');
     Route::get('/', [MarketerController::class, 'index'])->name('index');
     Route::post('/', [MarketerController::class, 'store'])->name('store');
     Route::get('/{id}/edit', fn ($id) => Inertia::render('Admin/Marketers/Edit', ['id' => $id]))
