@@ -25,9 +25,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 Route::get('/attendance/{employeeId}/{date}', [AttendanceController::class, 'details']);
 
 
-Route::middleware(['auth'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-});
+// Route::middleware(['auth'])->prefix('admin')->group(function () {
+//     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+// });
 
     /*
     |--------------------------------------------------------------------------
@@ -42,6 +42,10 @@ Route::middleware(['auth','admin'])->prefix('marketers')->name('marketers.')->gr
         ->name('live');
     Route::get('/create', fn () => Inertia::render('Admin/Marketers/Create'))
         ->name('create');
+Route::get('/{id}/latest-location', [MarketerTrackingController::class, 'latestLocation'])
+    ->name('latest-location');
+        Route::get('/{id}/live', [MarketerTrackingController::class, 'fetchLiveLocation'])
+    ->name('fetchLiveLocation');
     Route::get('/', [MarketerController::class, 'index'])->name('index');
     Route::post('/', [MarketerController::class, 'store'])->name('store');
     Route::get('/{id}/edit', fn ($id) => Inertia::render('Admin/Marketers/Edit', ['id' => $id]))
@@ -70,6 +74,10 @@ Route::middleware(['auth','admin'])->prefix('marketers')->name('marketers.')->gr
 
 Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');
 Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
+// Show single employee (AJAX JSON) — VIEW modal
+Route::get('/employees/manage/{employee}', [EmployeeManageController::class, 'show'])
+    ->name('employees.manage.show');
+
 
     // List employees
     Route::get('/employees/manage', [EmployeeManageController::class, 'index'])
@@ -146,7 +154,12 @@ Route::get('/notifications', [NotificationController::class, 'index'])->name('ad
 Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.markAsRead');
 
 Route::get('/salary-report', [SalaryReportController::class, 'index'])->name('salary-report.index');
+Route::post('/salary-report/finalize', [SalaryReportController::class, 'finalize'])
+    ->name('salary-report.finalize');
 Route::get('/salary-report/export', [SalaryReportController::class, 'export'])->name('salary-report.export');
+Route::get('/salary-report/payslip/{salary}', [SalaryReportController::class, 'payslip'])
+    ->name('salary-report.payslip')
+    ->whereNumber('salary');
 
 // Index + store stay same
 Route::get('/users', [UserManageController::class, 'index'])->name('users.index');

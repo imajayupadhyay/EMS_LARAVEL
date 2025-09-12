@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Carbon\Carbon;
 
 class Punch extends Model
@@ -29,13 +30,16 @@ class Punch extends Model
         return is_null($this->punched_out_at) ? 'in' : 'out';
     }
 
-    public function employee()
+    public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
     }
 
+    /**
+     * Scope for punches of today (based on punched_in_at)
+     */
     public function scopeToday($query)
     {
-        return $query->whereDate('created_at', Carbon::today());
+        return $query->whereDate('punched_in_at', Carbon::today()->toDateString());
     }
 }

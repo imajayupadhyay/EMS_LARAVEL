@@ -1,13 +1,15 @@
 <?php
+
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;  // change from Model to Authenticatable
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Hash;
 
 class Employee extends Authenticatable
 {
-    use HasFactory;
+    use Notifiable;
 
     protected $fillable = [
         'first_name',
@@ -15,36 +17,67 @@ class Employee extends Authenticatable
         'last_name',
         'email',
         'password',
+        'contact',
+        'emergency_contact',
         'gender',
         'dob',
         'doj',
         'marital_status',
-        'contact',
-        'emergency_contact',
         'address',
         'zip',
         'pay_scale',
         'work_location',
         'department_id',
         'designation_id',
+        // payroll fields
+        'monthly_salary',
+        'salary_currency',
+        'salary_type',
     ];
 
-    public function setPasswordAttribute($value)
-    {
-        if ($value) {
-            $this->attributes['password'] = Hash::make($value);
-        }
-    }
+    /**
+     * Hide sensitive fields when model is serialized
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
-    public function department()
+    protected $casts = [
+        'dob' => 'date',
+        'doj' => 'date',
+        'monthly_salary' => 'decimal:2',
+    ];
+
+    /**
+     * Department relationship (each employee belongs to one department).
+     */
+    public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
     }
 
-    public function designation()
+    /**
+     * Designation relationship (each employee belongs to one designation).
+     */
+    public function designation(): BelongsTo
     {
         return $this->belongsTo(Designation::class);
     }
+
+    /**
+     * Defensive mutator: hash password only when required.
+     * If you already Hash::make() in controller, this will not double-hash
+     * because Hash::needsRehash() returns false for already hashed values.
+     */
+    public function setPasswordAttribute($value)
+    {
+        if ($value === null) return;
+
+        if (Hash::needsRehash($value)) {
+            $this->attributes['password'] = Hash::make($value);
+        } else {
+            $this->attributes['password'] = $value;
+        }
+    }
 }
-
-

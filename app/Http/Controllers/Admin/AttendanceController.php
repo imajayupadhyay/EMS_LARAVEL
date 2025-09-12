@@ -56,14 +56,17 @@ class AttendanceController extends Controller
                 }
             }
 
+            $emp = $first->employee ?? null;
+
             return [
-                'employee_id' => $first->employee->id,
-                'employee'    => trim(($first->employee->first_name ?? '') . ' ' . ($first->employee->last_name ?? '')),
-                'department'  => $first->employee->department->name ?? '—',
-                'designation' => $first->employee->designation->name ?? '—',
+                'employee_id' => $first->employee_id,
+                // only first + last name (no middle name anywhere)
+                'employee'    => $emp ? trim(($emp->first_name ?? '') . ' ' . ($emp->last_name ?? '')) : '',
+                'department'  => $emp && $emp->department ? $emp->department->name : '—',
+                'designation' => $emp && $emp->designation ? $emp->designation->name : '—',
                 'date'        => Carbon::parse($first->punched_in_at)->timezone('Asia/Kolkata')->format('Y-m-d'),
                 'first_in'    => $firstIn ? $firstIn->format('h:i:s A') : '',
-                'last_out'    => $lastOut ? $lastOut->format('h:i:s A') : '',  // blank if not punched out
+                'last_out'    => $lastOut ? $lastOut->format('h:i:s A') : '',
                 'hours'       => gmdate('H:i:s', $totalSeconds),
             ];
         })->values();
@@ -107,8 +110,10 @@ class AttendanceController extends Controller
             return Inertia::render('Admin/Attendance/Index', [
                 'todayAttendance'  => [],
                 'attendance'       => $paginated,
-                'employees'        => Employee::select('id', 'first_name', 'last_name')->get(),
-                'totalWorkingDays' => $totalWorkingDays, // null unless employee selected
+                // include department & designation relations for frontend (but frontend will only display first+last)
+                'employees'        => Employee::with(['department', 'designation'])
+                                            ->select('id', 'first_name', 'last_name')->get(),
+                'totalWorkingDays' => $totalWorkingDays,
                 'filters'          => [
                     'employee_id' => $selectedEmployee,
                     'date'        => $selectedDate,
@@ -136,8 +141,11 @@ class AttendanceController extends Controller
         return Inertia::render('Admin/Attendance/Index', [
             'todayAttendance'  => $todayAttendance,
             'attendance'       => $paginated,
-            'employees'        => Employee::select('id', 'first_name', 'last_name')->get(),
-            'totalWorkingDays' => $totalWorkingDays, // null unless employee selected
+            // include department & designation relations for frontend view
+            'employees' => Employee::with(['department', 'designation'])
+                      ->select('id', 'first_name', 'last_name', 'department_id', 'designation_id')
+                      ->get(),
+            'totalWorkingDays' => $totalWorkingDays,
             'filters'          => [
                 'employee_id' => $selectedEmployee,
                 'date'        => $selectedDate,
@@ -151,46 +159,48 @@ class AttendanceController extends Controller
         return Excel::download(new AttendanceExport($request), 'attendance.xlsx');
     }
 
-public function details($employeeId, $date)
+   public function details($employeeId, $date)
 {
     $ist = 'Asia/Kolkata';
 
-    // Build day windows
+    // Build day windows (IST)
     $startIst = \Carbon\Carbon::createFromFormat('Y-m-d', $date, $ist)->startOfDay();
     $endIst   = (clone $startIst)->endOfDay();
 
-    // Convert those to UTC (for the standard TIMESTAMP-in-UTC storage)
+    // Convert those to UTC (for TIMESTAMP storage)
     $startUtc = $startIst->copy()->timezone('UTC')->format('Y-m-d H:i:s');
     $endUtc   = $endIst->copy()->timezone('UTC')->format('Y-m-d H:i:s');
 
-    // As strings for CONVERT_TZ branch (works without named TZ tables because we use fixed offsets)
+    // As strings for CONVERT_TZ branch
     $startIstStr = $startIst->format('Y-m-d H:i:s');
     $endIstStr   = $endIst->format('Y-m-d H:i:s');
 
-    $punches = Punch::with('employee:id,first_name,last_name')
-        ->where('employee_id', $employeeId)
+    // Fetch punches for that employee/date (same logic as before)
+    $punches = Punch::where('employee_id', $employeeId)
         ->where(function ($q) use ($date, $startUtc, $endUtc, $startIstStr, $endIstStr) {
             $q
-            // Case A: DB stores TIMESTAMP effectively in UTC
             ->whereBetween('punched_in_at', [$startUtc, $endUtc])
-
-            // OR Case B: Compare by viewing column in IST inside SQL
-            ->orWhereRaw(
-                "CONVERT_TZ(punched_in_at, '+00:00', '+05:30') BETWEEN ? AND ?",
-                [$startIstStr, $endIstStr]
-            )
-
-            // OR Case C: Session/column behaves as local (IST) so date() matches
+            ->orWhereRaw("CONVERT_TZ(punched_in_at, '+00:00', '+05:30') BETWEEN ? AND ?", [$startIstStr, $endIstStr])
             ->orWhereDate('punched_in_at', $date);
         })
         ->orderBy('punched_in_at')
         ->get();
 
+    // Fetch employee + relations directly (defensive)
+    $emp = Employee::with(['department','designation'])
+        ->select('id','first_name','last_name','department_id','designation_id')
+        ->find($employeeId);
+
+    $deptName = $emp && $emp->department ? $emp->department->name : '';
+    $desigName = $emp && $emp->designation ? $emp->designation->name : '';
+
     if ($punches->isEmpty()) {
         return response()->json([
             'not_found'     => true,
-            'employee'      => '',
+            'employee'      => $emp ? trim(($emp->first_name ?? '') . ' ' . ($emp->last_name ?? '')) : '',
             'date'          => $date,
+            'department'    => $deptName,
+            'designation'   => $desigName,
             'first_in'      => '',
             'last_out'      => '',
             'hours'         => '',
@@ -199,7 +209,7 @@ public function details($employeeId, $date)
         ]);
     }
 
-    // Build response in IST
+    // Build response in IST (same as before)
     $firstInAt = $punches->min('punched_in_at');
     $firstIn   = $firstInAt ? \Carbon\Carbon::parse($firstInAt)->timezone($ist)->format('h:i:s A') : '';
 
@@ -215,7 +225,7 @@ public function details($employeeId, $date)
         $in  = \Carbon\Carbon::parse($p->punched_in_at)->timezone($ist);
         $out = $p->punched_out_at ? \Carbon\Carbon::parse($p->punched_out_at)->timezone($ist) : null;
 
-        $dur = $out ? $in->diffInSeconds($out) : 0; // open interval not counted
+        $dur = $out ? $in->diffInSeconds($out) : 0;
         $totalSeconds += $dur;
 
         $intervals[] = [
@@ -226,8 +236,10 @@ public function details($employeeId, $date)
     }
 
     return response()->json([
-        'employee'      => $punches->first()->employee->first_name . ' ' . $punches->first()->employee->last_name,
+        'employee'      => $emp ? trim(($emp->first_name ?? '') . ' ' . ($emp->last_name ?? '')) : '',
         'date'          => $date,
+        'department'    => $deptName,
+        'designation'   => $desigName,
         'first_in'      => $firstIn,
         'last_out'      => $lastOut,
         'hours'         => gmdate('H:i:s', $totalSeconds),
@@ -235,7 +247,5 @@ public function details($employeeId, $date)
         'total_seconds' => $totalSeconds,
     ]);
 }
-
-
 
 }
