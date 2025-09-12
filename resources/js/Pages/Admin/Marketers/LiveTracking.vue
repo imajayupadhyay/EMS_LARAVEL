@@ -44,7 +44,7 @@
           <div class="space-y-2 max-h-64 overflow-auto">
             <template v-if="punchedOut.length">
               <button v-for="p in punchedOut" :key="p.id"
-                @click="openInGoogleMaps(p.id)"
+                @click="() => alert('Marketer is punched out — cannot open Google Maps.')"
                 class="w-full text-left px-3 py-2 rounded-md hover:bg-gray-50 flex justify-between items-center">
                 <div>
                   <div class="font-semibold">{{ p.name }}</div>
@@ -77,7 +77,7 @@
               <th class="px-4 py-2 text-left">Contact</th>
               <th class="px-4 py-2 text-left">Last Location</th>
               <th class="px-4 py-2 text-left">Status</th>
-              <th class="px-4 py-2 text-left">Last Update</th>
+              <!-- <th class="px-4 py-2 text-left">Last Update</th> -->
               <th class="px-4 py-2 text-left">Action</th>
             </tr>
           </thead>
@@ -96,12 +96,12 @@
                 <span v-if="m.last_punch && m.last_punch.status === 'in'" class="status in">🟢 In</span>
                 <span v-else class="status out">🔴 Out</span>
               </td>
-              <td class="px-4 py-2">
+              <!-- <td class="px-4 py-2">
                 <span v-if="m.locations && m.locations.length > 0">
                   {{ formatDate(m.locations[0].recorded_at) }}
                 </span>
                 <span v-else>—</span>
-              </td>
+              </td> -->
               <td class="px-4 py-2">
                 <button @click="openInGoogleMaps(m.id)" class="text-sm px-3 py-1 rounded-md border">Open in Google Maps</button>
               </td>
@@ -119,7 +119,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 
-// props from controller
+// props from controller (now marketers have last_punch arrays)
 const { props } = usePage();
 const marketers = ref(props.marketers || []);
 const punchedIn = ref(props.punchedIn || []);
@@ -130,9 +130,27 @@ const statusFilter = ref('all');
 
 const refresh = () => window.location.reload();
 
+/**
+ * Force display in Asia/Kolkata (IST).
+ * Uses Intl.DateTimeFormat with timezone set to Asia/Kolkata.
+ * Accepts Date object, ISO string or timestamp. Returns formatted string.
+ */
 const formatDate = (d) => {
   if (!d) return '—';
-  try { return new Date(d).toLocaleString(); } catch { return d; }
+  try {
+    const dt = (d instanceof Date) ? d : new Date(d);
+    if (isNaN(dt.getTime())) return d;
+    // specify options you prefer
+    const opts = {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false,
+      timeZone: 'Asia/Kolkata'
+    };
+    return new Intl.DateTimeFormat('en-GB', opts).format(dt) + ' (IST)';
+  } catch (e) {
+    return d;
+  }
 };
 
 const filteredMarketers = computed(() => {
@@ -149,17 +167,47 @@ const filteredMarketers = computed(() => {
 });
 
 /**
- * Fetch latest location for marketer and open in Google Maps.
- * Uses Google Maps "search" URL which centers and pins the location.
+ * Helper that checks if marketer is punched in.
+ * Accepts either a marketer object from initial payload (m) or data from AJAX.
  */
-const openInGoogleMaps = async (marketerId) => {
-  try {
-    // optional: show a loader pattern (not implemented) or disable UI while fetching
-    const resp = await axios.get(`/admin/marketers/${marketerId}/latest-location`);
-    console.log('latest-location response:', resp?.data);
+const isMarketerPunchedIn = (marketer) => {
+  if (!marketer) return false;
+  // marker can be the full object with last_punch, or AJAX data with last_punch
+  const lp = marketer.last_punch ?? (marketer.lastPunch ?? null);
+  return lp && lp.status === 'in';
+};
 
+/**
+ * Fetch latest location for marketer and open in Google Maps.
+ * Only opens maps if the marketer's last_punch status is 'in'.
+ */
+const openInGoogleMaps = async (marketerIdOrObj) => {
+  // allow passing either an id (number/string) or the marketer object (from table)
+  let marketerId = null;
+  let marketerObj = null;
+
+  if (typeof marketerIdOrObj === 'object') {
+    marketerObj = marketerIdOrObj;
+    marketerId = marketerObj.id;
+  } else {
+    marketerId = marketerIdOrObj;
+  }
+
+  // if we already have the marketer object and it's punched out, block immediately
+  if (marketerObj && !isMarketerPunchedIn(marketerObj)) {
+    return alert('Marketer is punched out — location will not be opened in Google Maps.');
+  }
+
+  try {
+    const resp = await axios.get(`/admin/marketers/${marketerId}/latest-location`);
     if (!resp || resp.status !== 200 || !resp.data || resp.data.success !== true) {
       return alert('Could not fetch latest location for this marketer.');
+    }
+
+    const lastPunch = resp.data.data.last_punch;
+    if (!lastPunch || lastPunch.status !== 'in') {
+      // marketer is not punched in — do not open maps
+      return alert('Marketer is currently punched out — cannot open Google Maps.');
     }
 
     const location = resp.data.data.location;
@@ -183,6 +231,7 @@ const openInGoogleMaps = async (marketerId) => {
   }
 };
 </script>
+
 
 <style scoped>
 /* small UI styles; relies mostly on tailwind in your project */

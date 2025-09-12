@@ -10,29 +10,24 @@ use Inertia\Inertia;
 
 class MarketerTrackingController extends Controller
 {
-    // existing method with enhancements
     public function liveLocations()
     {
-        // eager load only the latest location per marketer for efficiency
+        // eager load latest location per marketer for efficiency
         $marketers = Marketer::with(['locations' => function ($q) {
             $q->latest('recorded_at')->limit(1);
         }])->get();
 
-        // attach last_punch and compute simple lists
         $punchedIn = [];
         $punchedOut = [];
 
-        foreach ($marketers as $marketer) {
-            $marketer->last_punch = MarketerPunch::where('marketer_id', $marketer->id)
-                ->latest()
-                ->first();
+        // Attach last_punch and normalize locations to arrays; convert to simple arrays for Inertia
+        $marketersPayload = $marketers->map(function ($marketer) use (&$punchedIn, &$punchedOut) {
+            $lastPunch = MarketerPunch::where('marketer_id', $marketer->id)->latest()->first();
 
-            // Normalize locations to an array (may be empty)
-            if (!isset($marketer->locations) || !is_array($marketer->locations)) {
-                $marketer->locations = $marketer->locations ?? [];
-            }
+            $locations = $marketer->locations ? $marketer->locations->toArray() : [];
 
-            if ($marketer->last_punch && $marketer->last_punch->status === 'in') {
+            // push into punched lists for the sidebar (basic info only)
+            if ($lastPunch && $lastPunch->status === 'in') {
                 $punchedIn[] = [
                     'id' => $marketer->id,
                     'name' => trim($marketer->first_name . ' ' . $marketer->last_name),
@@ -45,10 +40,21 @@ class MarketerTrackingController extends Controller
                     'email' => $marketer->email,
                 ];
             }
-        }
+
+            return [
+                'id' => $marketer->id,
+                'first_name' => $marketer->first_name,
+                'last_name' => $marketer->last_name,
+                'email' => $marketer->email,
+                'contact' => $marketer->contact,
+                'locations' => $locations,
+                // include last_punch as a simple object (or null)
+                'last_punch' => $lastPunch ? $lastPunch->toArray() : null,
+            ];
+        });
 
         return Inertia::render('Admin/Marketers/LiveTracking', [
-            'marketers'  => $marketers,
+            'marketers'  => $marketersPayload,
             'punchedIn'  => $punchedIn,
             'punchedOut' => $punchedOut,
         ]);
@@ -77,8 +83,8 @@ class MarketerTrackingController extends Controller
                     'email' => $marketer->email,
                     'contact' => $marketer->contact,
                 ],
-                'last_punch' => $lastPunch,
-                'location' => $location,
+                'last_punch' => $lastPunch ? $lastPunch->toArray() : null,
+                'location' => $location ? (is_array($location) ? $location : $location->toArray()) : null,
             ],
         ]);
     }
