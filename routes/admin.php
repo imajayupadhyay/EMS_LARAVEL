@@ -37,6 +37,9 @@ Route::get('/attendance/{employeeId}/{date}', [AttendanceController::class, 'det
     Route::get('/dashboard', fn () => Inertia::render('Admin/Dashboard'))->name('dashboard');
 
 
+
+
+
 Route::middleware(['auth','admin'])->prefix('marketers')->name('marketers.')->group(function () {
     Route::get('/live-locations', [MarketerTrackingController::class, 'liveLocations'])
         ->name('live');
@@ -54,6 +57,10 @@ Route::get('/{id}/latest-location', [MarketerTrackingController::class, 'latestL
     Route::put('/{id}', [MarketerController::class, 'update'])->name('update');
     Route::delete('/{id}', [MarketerController::class, 'destroy'])->name('destroy');
 });
+
+Route::resource('policies', \App\Http\Controllers\Admin\PolicyController::class)->names('policies');
+    Route::post('policies/{policy}/toggle', [\App\Http\Controllers\Admin\PolicyController::class,'toggle'])->name('policies.toggle');
+    Route::post('policies/{policy}/delete', [\App\Http\Controllers\Admin\PolicyController::class, 'destroy'])->name('admin.policies.delete');
 
 
 
