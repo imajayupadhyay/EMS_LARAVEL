@@ -30,10 +30,10 @@
         <p class="text-sm text-gray-600">{{ emp.department?.name }} - {{ emp.designation?.name }}</p>
 
         <!-- show salary summary on card -->
-        <div class="mt-2 text-sm text-gray-700">
+        <!-- <div class="mt-2 text-sm text-gray-700">
           <div><strong>Salary:</strong> {{ formatMoney(emp.monthly_salary) }} {{ emp.salary_currency ?? 'INR' }}</div>
           <div><strong>Type:</strong> {{ (emp.salary_type ?? 'monthly') }}</div>
-        </div>
+        </div> -->
 
         <div class="mt-3 flex gap-2">
           <button @click="openView(emp.id)" class="btn-view">View</button>
