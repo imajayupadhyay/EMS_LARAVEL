@@ -69,7 +69,7 @@ class LeaveApplicationController extends Controller
         ]);
 
         // Email
-        $adminEmail = 'ajayupadhyay030@gmail.com';
+        $adminEmail = 'Goelanmol1802@gmail.com';
         Mail::to($adminEmail)->send(new LeaveApplicationNotificationMail($leaveApplication));
 
         return back()->with('success', 'Leave application submitted successfully!');

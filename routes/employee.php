@@ -9,6 +9,12 @@ use App\Http\Controllers\Employee\LeaveSummaryController;
 use App\Http\Controllers\Employee\AttendanceController;
 use App\Http\Controllers\Employee\HolidayController;
 
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('employee/policies', [\App\Http\Controllers\Employee\PolicyController::class, 'index'])->name('employee.policies.index');
+});
+
 Route::middleware(['auth:employee'])->prefix('employee')->name('employee.')->group(function () {
     // Dashboard
     Route::get('/dashboard', fn() => Inertia::render('Employee/Dashboard'))->name('dashboard');
