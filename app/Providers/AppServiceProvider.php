@@ -3,7 +3,7 @@
 namespace App\Providers;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Session;
-
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -41,6 +41,9 @@ public function boot()
 
             return ['user' => null];
         },
+        'routeName' => function () {
+                return Route::currentRouteName();
+            },
     ]);
 }
     
