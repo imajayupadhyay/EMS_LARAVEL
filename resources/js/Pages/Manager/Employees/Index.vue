@@ -521,10 +521,10 @@
                         <span class="font-medium text-gray-600">Designation:</span>
                         <span class="text-gray-900">{{ detail.designation?.name || '-' }}</span>
                       </div>
-                      <div class="flex justify-between py-2 border-b border-gray-100">
+                      <!-- <div class="flex justify-between py-2 border-b border-gray-100">
                         <span class="font-medium text-gray-600">Pay Scale:</span>
                         <span class="text-gray-900">{{ detail.pay_scale || '-' }}</span>
-                      </div>
+                      </div> -->
                       <div class="flex justify-between py-2 border-b border-gray-100">
                         <span class="font-medium text-gray-600">Work Location:</span>
                         <span class="text-gray-900">{{ detail.work_location || '-' }}</span>
