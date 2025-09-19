@@ -137,6 +137,7 @@ const navSections = [
     links: [
       { name: 'Departments', href: route('admin.departments.index'), route: 'admin.departments.index', icon: '🏢' },
       { name: 'Designations', href: route('admin.designations.index'), route: 'admin.designations.index', icon: '🏷️' },
+       { name: 'Shifts', href: route('admin.shifts.index'), route: 'admin.shifts.index', icon: '⏰' }, 
       { name: 'Locations', href: route('admin.locations.index'), route: 'admin.locations.index', icon: '📍' },
       { name: 'Admins / Managers', href: route('admin.users.index'), route: 'admin.users.index', icon: '🛡️' },
        { name: 'Policies', href: route('admin.policies.index'), route: 'admin.policies.index', icon: '📜' },

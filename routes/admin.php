@@ -62,7 +62,11 @@ Route::resource('policies', \App\Http\Controllers\Admin\PolicyController::class)
     Route::post('policies/{policy}/toggle', [\App\Http\Controllers\Admin\PolicyController::class,'toggle'])->name('policies.toggle');
     Route::post('policies/{policy}/delete', [\App\Http\Controllers\Admin\PolicyController::class, 'destroy'])->name('admin.policies.delete');
 
-
+// Shift Management Routes
+Route::get('/shifts', [App\Http\Controllers\Admin\ShiftController::class, 'index'])->name('shifts.index');
+Route::post('/shifts', [App\Http\Controllers\Admin\ShiftController::class, 'store'])->name('shifts.store');
+Route::post('/shifts/update', [App\Http\Controllers\Admin\ShiftController::class, 'update'])->name('shifts.update');
+Route::post('/shifts/delete', [App\Http\Controllers\Admin\ShiftController::class, 'destroy'])->name('shifts.destroy');
 
     /*
     |--------------------------------------------------------------------------
