@@ -225,6 +225,21 @@ const sections = [
     ]
   },
   {
+  title: 'Shift Management',
+  items: [
+    { 
+      name: 'View Shifts', 
+      route: 'manager.shifts.index',
+      svg: '<svg>...</svg>' // Clock icon
+    },
+    { 
+      name: 'Assign Shifts', 
+      route: 'manager.employees.shifts.index',
+      svg: '<svg>...</svg>' // User clock icon
+    },
+  ]
+},
+  {
     title: 'HR MANAGEMENT',
     items: [
       { 

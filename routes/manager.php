@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Manager\DashboardController;
 use App\Http\Controllers\Manager\EmployeeManageController;
+use App\Http\Controllers\Manager\ShiftController; 
+use App\Http\Controllers\Manager\EmployeeShiftController;
 
 Route::middleware(['auth'])
     ->prefix('manager')
@@ -11,6 +13,13 @@ Route::middleware(['auth'])
         
         // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        
+        // Shift Management Routes - MOVED BEFORE employees group to avoid conflicts
+        Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
+        
+        // Employee Shift Assignment Routes - Changed URL to avoid conflict with /{employee} route
+        Route::get('/employee-shifts', [EmployeeShiftController::class, 'index'])->name('employees.shifts.index');
+        Route::post('/employees/{employee}/assign-shift', [EmployeeShiftController::class, 'assignShift'])->name('employees.assign-shift');
         
         // Employee Management Routes
         Route::prefix('employees')->name('employees.')->group(function () {
