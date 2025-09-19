@@ -1,206 +1,383 @@
 <template>
-  <div class="min-h-screen bg-gray-50 p-4">
-    <!-- Filters -->
-    <div class="bg-white shadow p-4 rounded-lg mb-6 flex flex-col md:flex-row gap-4 md:items-center">
-      <input
-        v-model="filters.name"
-        @input="applyFilters"
-        placeholder="Search by Name"
-        class="input w-full md:w-auto"
-      />
-      <select v-model="filters.department_id" @change="applyFilters" class="input w-full md:w-auto">
-        <option value="">All Departments</option>
-        <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
-      </select>
-      <select v-model="filters.designation_id" @change="applyFilters" class="input w-full md:w-auto">
-        <option value="">All Designations</option>
-        <option v-for="d in designations" :key="d.id" :value="d.id">{{ d.name }}</option>
-      </select>
-    </div>
+  <div class="min-h-screen bg-gray-50 p-6">
+    <!-- Header Section -->
+    <!-- <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Employee Management</h1>
+    </div> -->
 
-    <!-- Employee Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
-        v-for="emp in employees"
-        :key="emp.id"
-        class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition duration-300"
-      >
-        <h3 class="font-bold text-orange-600">{{ emp.first_name }} {{ emp.middle_name }} {{ emp.last_name }}</h3>
-        <p class="text-sm text-gray-500">{{ emp.email }}</p>
-        <p class="text-sm text-gray-600">{{ emp.department?.name }} - {{ emp.designation?.name }}</p>
-
-        <!-- show salary summary on card -->
-        <!-- <div class="mt-2 text-sm text-gray-700">
-          <div><strong>Salary:</strong> {{ formatMoney(emp.monthly_salary) }} {{ emp.salary_currency ?? 'INR' }}</div>
-          <div><strong>Type:</strong> {{ (emp.salary_type ?? 'monthly') }}</div>
-        </div> -->
-
-        <div class="mt-3 flex gap-2">
-          <button @click="openView(emp.id)" class="btn-view">View</button>
-          <button @click="startEdit(emp)" class="btn-edit">Edit</button>
-          <button @click="confirmDelete(emp.id)" class="btn-delete">Delete</button>
+    <!-- Filters Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Search by Name</label>
+          <input
+            v-model="filters.name"
+            @input="applyFilters"
+            placeholder="Enter employee name..."
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+          <select 
+            v-model="filters.department_id" 
+            @change="applyFilters" 
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+          >
+            <option value="">All Departments</option>
+            <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Designation</label>
+          <select 
+            v-model="filters.designation_id" 
+            @change="applyFilters" 
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+          >
+            <option value="">All Designations</option>
+            <option v-for="d in designations" :key="d.id" :value="d.id">{{ d.name }}</option>
+          </select>
         </div>
       </div>
     </div>
 
+    <!-- Employee Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div
+        v-for="emp in employees"
+        :key="emp.id"
+        class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden"
+      >
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-4">
+          <h3 class="text-lg font-semibold text-white">
+            {{ emp.first_name }} {{ emp.middle_name }} {{ emp.last_name }}
+          </h3>
+          <p class="text-orange-100 text-sm">{{ emp.email }}</p>
+        </div>
+
+        <!-- Card Body -->
+        <div class="p-4 space-y-3">
+          <div class="flex items-center text-sm">
+            <span class="text-gray-500 w-24">Department:</span>
+            <span class="text-gray-900 font-medium">{{ emp.department?.name || 'N/A' }}</span>
+          </div>
+          <div class="flex items-center text-sm">
+            <span class="text-gray-500 w-24">Designation:</span>
+            <span class="text-gray-900 font-medium">{{ emp.designation?.name || 'N/A' }}</span>
+          </div>
+          <div class="flex items-center text-sm">
+            <span class="text-gray-500 w-24">Shift:</span>
+            <span class="text-gray-900 font-medium">{{ emp.shift?.name || 'Not Assigned' }}</span>
+          </div>
+          <div v-if="emp.shift" class="flex items-center text-sm">
+            <span class="text-gray-500 w-24">Timing:</span>
+            <span class="text-gray-600">
+              {{ emp.shift.time_from?.substring(0, 5) }} - {{ emp.shift.time_to?.substring(0, 5) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Card Actions -->
+        <div class="border-t border-gray-100 px-4 py-3 bg-gray-50 flex gap-2">
+          <button 
+            @click="openView(emp.id)" 
+            class="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium text-sm"
+          >
+            View
+          </button>
+          <button 
+            @click="startEdit(emp)" 
+            class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-sm"
+          >
+            Edit
+          </button>
+          <button 
+            @click="confirmDelete(emp.id)" 
+            class="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium text-sm"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-if="!employees || employees.length === 0" class="text-center py-12">
+      <div class="text-gray-400 text-6xl mb-4">👥</div>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">No employees found</h3>
+      <p class="text-gray-600">Try adjusting your filters or add a new employee</p>
+    </div>
+
     <!-- View Modal -->
-    <div v-if="viewModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div class="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-auto">
-        <div class="flex items-start justify-between">
-          <h2 class="text-xl font-bold mb-2">Employee Details</h2>
-          <button @click="closeView" class="text-gray-500 hover:text-gray-700">✕</button>
+    <div v-if="viewModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+      <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex items-center justify-between">
+          <h2 class="text-2xl font-bold text-white">Employee Details</h2>
+          <button @click="closeView" class="text-white hover:text-gray-200 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        <div v-if="loadingView" class="py-8 text-center">
-          Loading...
+        <!-- Modal Body -->
+        <div class="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+          <div v-if="loadingView" class="flex justify-center items-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+          </div>
+
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Full Name</label>
+              <p class="text-lg font-semibold text-gray-900">{{ viewData.full_name }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Email</label>
+              <p class="text-gray-900">{{ viewData.email }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Contact</label>
+              <p class="text-gray-900">{{ viewData.contact }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Emergency Contact</label>
+              <p class="text-gray-900">{{ viewData.emergency_contact || 'N/A' }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Department</label>
+              <p class="text-gray-900">{{ viewData.department?.name || 'N/A' }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Designation</label>
+              <p class="text-gray-900">{{ viewData.designation?.name || 'N/A' }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Shift</label>
+              <p class="text-gray-900">{{ viewData.shift?.name || 'Not Assigned' }}</p>
+              <p v-if="viewData.shift" class="text-sm text-gray-500">
+                {{ viewData.shift.time_from?.substring(0, 5) }} - {{ viewData.shift.time_to?.substring(0, 5) }}
+              </p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Date of Birth</label>
+              <p class="text-gray-900">{{ formatDate(viewData.dob) }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Date of Joining</label>
+              <p class="text-gray-900">{{ formatDate(viewData.doj) }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Gender</label>
+              <p class="text-gray-900">{{ viewData.gender || 'N/A' }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Marital Status</label>
+              <p class="text-gray-900">{{ viewData.marital_status || 'N/A' }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Work Location</label>
+              <p class="text-gray-900">{{ viewData.work_location || 'N/A' }}</p>
+            </div>
+
+            <div class="md:col-span-2 space-y-1">
+              <label class="text-sm font-medium text-gray-500">Address</label>
+              <p class="text-gray-900">{{ viewData.address || 'N/A' }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">ZIP Code</label>
+              <p class="text-gray-900">{{ viewData.zip || 'N/A' }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Pay Scale</label>
+              <p class="text-gray-900">{{ viewData.pay_scale || 'N/A' }}</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Monthly Salary</label>
+              <p class="text-lg font-semibold text-orange-600">
+                {{ formatMoney(viewData.monthly_salary) }} {{ viewData.salary_currency || 'INR' }}
+              </p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-sm font-medium text-gray-500">Salary Type</label>
+              <p class="text-gray-900 capitalize">{{ viewData.salary_type || 'monthly' }}</p>
+            </div>
+          </div>
         </div>
 
-        <div v-else>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 class="font-semibold">Name</h3>
-              <p>{{ viewData.full_name || (viewData.first_name + ' ' + (viewData.middle_name ?? '') + ' ' + (viewData.last_name ?? '')) }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Email</h3>
-              <p>{{ viewData.email }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Contact</h3>
-              <p>{{ viewData.contact }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Emergency Contact</h3>
-              <p>{{ viewData.emergency_contact }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Department</h3>
-              <p>{{ viewData.department?.name }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Designation</h3>
-              <p>{{ viewData.designation?.name }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Date of Birth</h3>
-              <p>{{ formatDate(viewData.dob) }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Date of Joining</h3>
-              <p>{{ formatDate(viewData.doj) }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Gender</h3>
-              <p>{{ viewData.gender }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Address</h3>
-              <p>{{ viewData.address }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Work Location</h3>
-              <p>{{ viewData.work_location }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Pay Scale</h3>
-              <p>{{ viewData.pay_scale }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Marital Status</h3>
-              <p>{{ viewData.marital_status }}</p>
-            </div>
-
-            <div v-if="viewData.zip">
-              <h3 class="font-semibold">ZIP</h3>
-              <p>{{ viewData.zip }}</p>
-            </div>
-
-            <!-- Salary details -->
-            <div>
-              <h3 class="font-semibold">Monthly Salary</h3>
-              <p>{{ formatMoney(viewData.monthly_salary) }} {{ viewData.salary_currency ?? 'INR' }}</p>
-            </div>
-
-            <div>
-              <h3 class="font-semibold">Salary Type</h3>
-              <p>{{ viewData.salary_type ?? 'monthly' }}</p>
-            </div>
-          </div>
-
-          <div class="mt-6 flex justify-end">
-            <button @click="closeView" class="btn-cancel">Close</button>
-          </div>
+        <!-- Modal Footer -->
+        <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-end">
+          <button 
+            @click="closeView" 
+            class="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Edit Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div class="bg-white rounded-lg p-6 w-full max-w-lg">
-        <h2 class="text-xl font-bold mb-4">Edit Employee</h2>
-        <form @submit.prevent="saveEdit">
-          <div class="grid grid-cols-2 gap-3">
-            <input v-model="editForm.first_name" placeholder="First Name" class="input" required />
-            <input v-model="editForm.middle_name" placeholder="Middle Name" class="input" />
-            <input v-model="editForm.last_name" placeholder="Last Name" class="input" required />
-            <input v-model="editForm.email" placeholder="Email" class="input" required />
-            <input v-model="editForm.contact" placeholder="Contact" class="input" required />
-            <input v-model="editForm.emergency_contact" placeholder="Emergency Contact" class="input" />
-            <input v-model="editForm.gender" placeholder="Gender" class="input" />
-            <input v-model="editForm.dob" type="date" class="input" />
-            <input v-model="editForm.doj" type="date" class="input" />
-            <input v-model="editForm.marital_status" placeholder="Marital Status" class="input" />
-            <input v-model="editForm.address" placeholder="Address" class="input" />
-            <input v-model="editForm.zip" placeholder="ZIP" class="input" />
-            <input v-model="editForm.pay_scale" placeholder="Pay Scale" class="input" />
-            <input v-model="editForm.work_location" placeholder="Work Location" class="input" />
+    <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+      <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 flex items-center justify-between">
+          <h2 class="text-2xl font-bold text-white">Edit Employee</h2>
+          <button @click="showModal = false" class="text-white hover:text-gray-200 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
-            <!-- salary fields -->
-            <div class="col-span-1">
-              <label class="text-sm font-medium block mb-1">Monthly Salary</label>
-              <input v-model.number="editForm.monthly_salary" type="number" step="0.01" min="0" placeholder="0.00" class="input" />
+        <!-- Modal Body -->
+        <form @submit.prevent="saveEdit" class="p-6 overflow-y-auto max-h-[calc(90vh-160px)]">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+              <input v-model="editForm.first_name" required class="input-field" />
             </div>
-
-            <div class="col-span-1">
-              <label class="text-sm font-medium block mb-1">Currency</label>
-              <input v-model="editForm.salary_currency" placeholder="INR" class="input" />
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
+              <input v-model="editForm.middle_name" class="input-field" />
             </div>
-
-            <div class="col-span-1">
-              <label class="text-sm font-medium block mb-1">Salary Type</label>
-              <select v-model="editForm.salary_type" class="input">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+              <input v-model="editForm.last_name" required class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+              <input v-model="editForm.email" type="email" required class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Contact *</label>
+              <input v-model="editForm.contact" required class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
+              <input v-model="editForm.emergency_contact" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+              <select v-model="editForm.gender" class="input-field">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+              <input v-model="editForm.dob" type="date" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Date of Joining</label>
+              <input v-model="editForm.doj" type="date" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Marital Status</label>
+              <select v-model="editForm.marital_status" class="input-field">
+                <option value="">Select Status</option>
+                <option value="Single">Single</option>
+                <option value="Married">Married</option>
+                <option value="Divorced">Divorced</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+              <input v-model="editForm.address" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+              <input v-model="editForm.zip" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Pay Scale</label>
+              <input v-model="editForm.pay_scale" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Work Location</label>
+              <input v-model="editForm.work_location" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Department *</label>
+              <select v-model="editForm.department_id" required class="input-field">
+                <option value="">Select Department</option>
+                <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Designation *</label>
+              <select v-model="editForm.designation_id" required class="input-field">
+                <option value="">Select Designation</option>
+                <option v-for="d in designations" :key="d.id" :value="d.id">{{ d.name }}</option>
+              </select>
+            </div>
+            
+            <!-- FIXED: Shift Dropdown with proper v-if to ensure shifts prop exists -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
+              <select v-model="editForm.shift_id" class="input-field">
+                <option :value="null">Select Shift (Optional)</option>
+                <option v-for="shift in (shifts || [])" :key="shift.id" :value="shift.id">
+                  {{ shift.name }} ({{ shift.time_from?.substring(0, 5) || '00:00' }} - {{ shift.time_to?.substring(0, 5) || '00:00' }})
+                </option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Salary</label>
+              <input v-model.number="editForm.monthly_salary" type="number" step="0.01" min="0" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+              <input v-model="editForm.salary_currency" placeholder="INR" maxlength="3" class="input-field" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Salary Type</label>
+              <select v-model="editForm.salary_type" class="input-field">
                 <option value="monthly">Monthly</option>
                 <option value="daily">Daily</option>
                 <option value="hourly">Hourly</option>
               </select>
             </div>
-
-            <select v-model="editForm.department_id" class="input">
-              <option value="">Select Department</option>
-              <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
-            </select>
-            <select v-model="editForm.designation_id" class="input">
-              <option value="">Select Designation</option>
-              <option v-for="d in designations" :key="d.id" :value="d.id">{{ d.name }}</option>
-            </select>
-          </div>
-          <div class="mt-4 flex justify-end gap-2">
-            <button type="submit" class="btn-save">Save</button>
-            <button type="button" @click="showModal = false" class="btn-cancel">Cancel</button>
           </div>
         </form>
+
+        <!-- Modal Footer -->
+        <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-end gap-3">
+          <button 
+            type="button" 
+            @click="showModal = false" 
+            class="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="saveEdit"
+            class="px-6 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
+          >
+            Save Changes
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -216,6 +393,7 @@ const props = defineProps({
   employees: Array,
   departments: Array,
   designations: Array,
+  shifts: Array,
   filters: Object,
 });
 
@@ -238,7 +416,7 @@ const editForm = reactive({
   work_location: '',
   department_id: '',
   designation_id: '',
-  // salary defaults
+  shift_id: null,
   monthly_salary: null,
   salary_currency: 'INR',
   salary_type: 'monthly',
@@ -260,7 +438,6 @@ const startEdit = (emp) => {
   showModal.value = true;
   currentId = emp.id;
 
-  // populate editForm from emp with safe defaults
   editForm.first_name = emp.first_name ?? '';
   editForm.middle_name = emp.middle_name ?? '';
   editForm.last_name = emp.last_name ?? '';
@@ -277,8 +454,8 @@ const startEdit = (emp) => {
   editForm.work_location = emp.work_location ?? '';
   editForm.department_id = emp.department_id ?? emp.department?.id ?? '';
   editForm.designation_id = emp.designation_id ?? emp.designation?.id ?? '';
-
-  // salary fields with safe defaults
+  // FIXED: Properly handle shift_id conversion to number or null
+  editForm.shift_id = emp.shift_id ? Number(emp.shift_id) : (emp.shift?.id ? Number(emp.shift.id) : null);
   editForm.monthly_salary = emp.monthly_salary !== undefined && emp.monthly_salary !== null ? Number(emp.monthly_salary) : null;
   editForm.salary_currency = emp.salary_currency ?? 'INR';
   editForm.salary_type = emp.salary_type ?? 'monthly';
@@ -304,33 +481,22 @@ const confirmDelete = (id) => {
   if (confirm("Are you sure you want to delete this employee?")) {
     router.post(route('admin.employees.manage.destroy', id), {}, {
       preserveScroll: true,
-      onSuccess: () => {
-        console.log("Employee deleted!");
-      },
-      onError: (err) => {
-        console.error("Failed to delete:", err);
-      }
     });
   }
 };
 
-// ---------- View logic ----------
 const openView = async (id) => {
   viewModal.value = true;
   loadingView.value = true;
-  // reset previous data
   Object.keys(viewData).forEach(k => delete viewData[k]);
 
   try {
     const res = await axios.get(route('admin.employees.manage.show', id));
     if (res.data && res.data.success) {
       Object.assign(viewData, res.data.data || {});
-    } else if (res.data) {
-      Object.assign(viewData, res.data);
     }
   } catch (err) {
     console.error('Failed to load employee:', err);
-    Object.assign(viewData, { first_name: 'Error', email: '', contact: '', department: {}, designation: {} });
   } finally {
     loadingView.value = false;
   }
@@ -338,13 +504,11 @@ const openView = async (id) => {
 
 const closeView = () => {
   viewModal.value = false;
-  loadingView.value = false;
   Object.keys(viewData).forEach(k => delete viewData[k]);
 };
 
 const formatDate = (d) => {
-  if (!d) return '';
-  // simple yyyy-mm-dd -> dd-mm-yyyy
+  if (!d) return 'N/A';
   const dt = (d || '').split('T')[0];
   const [y,m,day] = dt.split('-') || [];
   if (!y) return d;
@@ -352,29 +516,14 @@ const formatDate = (d) => {
 };
 
 const formatMoney = (value) => {
-  if (value === null || value === undefined || value === '') return '-';
+  if (value === null || value === undefined || value === '') return '0.00';
   const n = Number(value) || 0;
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 </script>
 
 <style scoped>
-.input {
-  @apply border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-orange-500;
-}
-.btn-view {
-  @apply bg-green-500 text-white text-sm px-3 py-1 rounded hover:bg-green-600;
-}
-.btn-edit {
-  @apply bg-blue-500 text-white text-sm px-3 py-1 rounded hover:bg-blue-600;
-}
-.btn-delete {
-  @apply bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600;
-}
-.btn-save {
-  @apply bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600;
-}
-.btn-cancel {
-  @apply bg-gray-300 px-4 py-2 rounded hover:bg-gray-400;
+.input-field {
+  @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all;
 }
 </style>

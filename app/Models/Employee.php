@@ -29,6 +29,7 @@ class Employee extends Authenticatable
         'work_location',
         'department_id',
         'designation_id',
+        'shift_id', 
         // payroll fields
         'monthly_salary',
         'salary_currency',
@@ -64,7 +65,10 @@ class Employee extends Authenticatable
     {
         return $this->belongsTo(Designation::class);
     }
-
+public function shift()
+    {
+        return $this->belongsTo(Shift::class);
+    }
     /**
      * Defensive mutator: hash password only when required.
      * If you already Hash::make() in controller, this will not double-hash

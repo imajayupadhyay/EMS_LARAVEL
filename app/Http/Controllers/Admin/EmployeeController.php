@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\Department;
 use App\Models\Designation;
+use App\Models\Shift;  // ✅ Add this
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
@@ -20,6 +21,7 @@ class EmployeeController extends Controller
         return Inertia::render('Admin/Employees/Create', [
             'departments' => Department::orderBy('name')->get(),
             'designations' => Designation::orderBy('name')->get(),
+            'shifts' => Shift::orderBy('name')->get(),  // ✅ Add shifts
             // sensible defaults for the form
             'defaults' => [
                 'salary_currency' => 'INR',
@@ -38,7 +40,7 @@ class EmployeeController extends Controller
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:employees,email',
-            'password' => 'required|string|min:6|confirmed', // use password_confirmation in form
+            'password' => 'required|string|min:6|confirmed',
             'gender' => 'required|string|max:50',
             'dob' => 'required|date',
             'doj' => 'required|date',
@@ -51,8 +53,9 @@ class EmployeeController extends Controller
             'work_location' => 'nullable|string|max:255',
             'department_id' => 'required|exists:departments,id',
             'designation_id' => 'required|exists:designations,id',
+            'shift_id' => 'nullable|exists:shifts,id',  // ✅ Add shift validation
 
-            // salary fields (optional for now)
+            // salary fields
             'monthly_salary' => 'nullable|numeric|min:0',
             'salary_currency' => 'nullable|string|size:3',
             'salary_type' => 'nullable|in:monthly,daily,hourly',
@@ -72,7 +75,7 @@ class EmployeeController extends Controller
             $validated['salary_type'] = 'monthly';
         }
 
-        // Create employee (make sure Employee::$fillable includes salary fields)
+        // Create employee
         $employee = Employee::create($validated);
 
         return redirect()
