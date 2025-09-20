@@ -6,6 +6,7 @@ use App\Http\Controllers\Manager\EmployeeManageController;
 use App\Http\Controllers\Manager\ShiftController; 
 use App\Http\Controllers\Manager\EmployeeShiftController;
 use App\Http\Controllers\Manager\AttendanceController;
+use App\Http\Controllers\Manager\LeaveController;
 
 Route::middleware(['auth'])
     ->prefix('manager')
@@ -50,5 +51,10 @@ Route::middleware(['auth'])
         // Route::resource('reports', ReportController::class);
         // Route::resource('departments', DepartmentController::class);
         // Route::resource('designations', DesignationController::class);
-        
+         Route::prefix('leaves')->name('leaves.')->group(function () {
+            Route::get('/', [LeaveController::class, 'index'])->name('index');
+            Route::post('/{leave}/status', [LeaveController::class, 'updateStatus'])->name('update-status');
+            Route::get('/export', [LeaveController::class, 'export'])->name('export');
+            Route::get('/details/{leave}', [LeaveController::class, 'details'])->name('details');
+        });
     });
