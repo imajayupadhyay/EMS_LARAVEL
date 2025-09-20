@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Manager\DashboardController;
 use App\Http\Controllers\Manager\EmployeeManageController;
+use App\Http\Controllers\Manager\ShiftController; 
+use App\Http\Controllers\Manager\EmployeeShiftController;
+use App\Http\Controllers\Manager\AttendanceController;
+use App\Http\Controllers\Manager\LeaveController;
 
 Route::middleware(['auth'])
     ->prefix('manager')
@@ -11,6 +15,13 @@ Route::middleware(['auth'])
         
         // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        
+        // Shift Management Routes - MOVED BEFORE employees group to avoid conflicts
+        Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
+        
+        // Employee Shift Assignment Routes - Changed URL to avoid conflict with /{employee} route
+        Route::get('/employee-shifts', [EmployeeShiftController::class, 'index'])->name('employees.shifts.index');
+        Route::post('/employees/{employee}/assign-shift', [EmployeeShiftController::class, 'assignShift'])->name('employees.assign-shift');
         
         // Employee Management Routes
         Route::prefix('employees')->name('employees.')->group(function () {
@@ -31,9 +42,19 @@ Route::middleware(['auth'])
             Route::get('/export/csv', [EmployeeManageController::class, 'export'])->name('export');
         });
         
+         Route::prefix('attendance')->name('attendance.')->group(function () {
+            Route::get('/', [AttendanceController::class, 'index'])->name('index');
+            Route::get('/export', [AttendanceController::class, 'export'])->name('export');
+            Route::get('/details/{employeeId}/{date}', [AttendanceController::class, 'details'])->name('details');
+        });
         // Future manager routes can go here
         // Route::resource('reports', ReportController::class);
         // Route::resource('departments', DepartmentController::class);
         // Route::resource('designations', DesignationController::class);
-        
+         Route::prefix('leaves')->name('leaves.')->group(function () {
+            Route::get('/', [LeaveController::class, 'index'])->name('index');
+            Route::post('/{leave}/status', [LeaveController::class, 'updateStatus'])->name('update-status');
+            Route::get('/export', [LeaveController::class, 'export'])->name('export');
+            Route::get('/details/{leave}', [LeaveController::class, 'details'])->name('details');
+        });
     });

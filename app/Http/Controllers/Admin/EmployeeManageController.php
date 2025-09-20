@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\Department;
 use App\Models\Designation;
+use App\Models\Shift;  // ✅ Add this
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -16,7 +17,7 @@ class EmployeeManageController extends Controller
      */
     public function index(Request $request)
     {
-        $employees = Employee::with(['department', 'designation'])
+        $employees = Employee::with(['department', 'designation', 'shift'])  // ✅ Add 'shift'
             ->when($request->name, function ($q) use ($request) {
                 $q->where(function ($sub) use ($request) {
                     $term = '%' . $request->name . '%';
@@ -35,6 +36,7 @@ class EmployeeManageController extends Controller
             'employees' => $employees,
             'departments' => Department::orderBy('name')->get(),
             'designations' => Designation::orderBy('name')->get(),
+            'shifts' => Shift::orderBy('name')->get(),  // ✅ Add shifts
             'filters' => $request->only('name', 'department_id', 'designation_id'),
         ]);
     }
@@ -44,7 +46,7 @@ class EmployeeManageController extends Controller
      */
     public function show(Employee $employee): \Illuminate\Http\JsonResponse
     {
-        $employee->load(['department', 'designation']);
+        $employee->load(['department', 'designation', 'shift']);  // ✅ Add 'shift'
 
         $formatDate = function ($val) {
             if ($val === null) return null;
@@ -88,6 +90,13 @@ class EmployeeManageController extends Controller
                 'id' => $employee->designation->id,
                 'name' => $employee->designation->name,
             ] : null,
+            // ✅ Add shift data
+            'shift' => $employee->shift ? [
+                'id' => $employee->shift->id,
+                'name' => $employee->shift->name,
+                'time_from' => $employee->shift->time_from,
+                'time_to' => $employee->shift->time_to,
+            ] : null,
             'created_at' => $employee->created_at?->toDateTimeString(),
             'updated_at' => $employee->updated_at?->toDateTimeString(),
         ];
@@ -120,6 +129,7 @@ class EmployeeManageController extends Controller
             'work_location' => 'nullable|string|max:255',
             'department_id' => 'required|exists:departments,id',
             'designation_id' => 'required|exists:designations,id',
+            'shift_id' => 'nullable|exists:shifts,id',  // ✅ Add shift validation
 
             // Salary fields
             'monthly_salary' => 'nullable|numeric|min:0',
