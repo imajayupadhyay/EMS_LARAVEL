@@ -5,6 +5,7 @@ use App\Http\Controllers\Manager\DashboardController;
 use App\Http\Controllers\Manager\EmployeeManageController;
 use App\Http\Controllers\Manager\ShiftController; 
 use App\Http\Controllers\Manager\EmployeeShiftController;
+use App\Http\Controllers\Manager\AttendanceController;
 
 Route::middleware(['auth'])
     ->prefix('manager')
@@ -40,6 +41,11 @@ Route::middleware(['auth'])
             Route::get('/export/csv', [EmployeeManageController::class, 'export'])->name('export');
         });
         
+         Route::prefix('attendance')->name('attendance.')->group(function () {
+            Route::get('/', [AttendanceController::class, 'index'])->name('index');
+            Route::get('/export', [AttendanceController::class, 'export'])->name('export');
+            Route::get('/details/{employeeId}/{date}', [AttendanceController::class, 'details'])->name('details');
+        });
         // Future manager routes can go here
         // Route::resource('reports', ReportController::class);
         // Route::resource('departments', DepartmentController::class);
