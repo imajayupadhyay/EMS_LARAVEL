@@ -21,9 +21,24 @@ class LeaveApplicationController extends Controller
             ->orderByDesc('created_at')
             ->paginate(10);
 
+        // NEW: Get leave balances for the employee (optional enhancement)
+        $leaveBalances = LeaveAssignment::with('leaveType')
+            ->where('employee_id', auth()->user()->id)
+            ->get()
+            ->mapWithKeys(function ($assignment) {
+                return [
+                    $assignment->leave_type_id => [
+                        'name' => $assignment->leaveType->name,
+                        'total_assigned' => $assignment->total_assigned,
+                        'balance' => $assignment->balance,
+                    ]
+                ];
+            });
+
         return inertia('Employee/LeaveApplication/Index', [
             'leaveTypes' => $leaveTypes,
-            'applications' => $applications
+            'applications' => $applications,
+            'leaveBalances' => $leaveBalances, // NEW: Optional - won't break if not used
         ]);
     }
 
@@ -37,9 +52,10 @@ class LeaveApplicationController extends Controller
             'day_type' => 'required|in:full,half',
         ]);
 
+        // PRESERVED: Original calculation logic
         $deduct = $request->day_type === 'half' ? 0.5 : 1;
 
-        // Fetch assignment
+        // PRESERVED: Fetch assignment and deduct balance
         $assignment = LeaveAssignment::where('employee_id', auth()->user()->id)
             ->where('leave_type_id', $request->leave_type_id)
             ->first();
@@ -49,7 +65,7 @@ class LeaveApplicationController extends Controller
             $assignment->save();
         }
 
-        // Create leave application
+        // PRESERVED: Create leave application with exact same logic
         $leaveApplication = LeaveApplication::create([
             'employee_id' => auth()->user()->id,
             'leave_type_id' => $request->leave_type_id,
@@ -60,7 +76,7 @@ class LeaveApplicationController extends Controller
             'day_type' => $request->day_type,
         ]);
 
-        // Notification
+        // PRESERVED: Original notification creation
         AdminNotification::create([
             'title' => 'New Leave Application',
             'message' => auth()->user()->first_name . ' ' . auth()->user()->last_name . ' applied for a ' . ucfirst($request->day_type) . ' day leave.',
@@ -68,7 +84,7 @@ class LeaveApplicationController extends Controller
             'is_read' => false,
         ]);
 
-        // Email
+        // PRESERVED: Original email logic
         $adminEmail = 'Goelanmol1802@gmail.com';
         Mail::to($adminEmail)->send(new LeaveApplicationNotificationMail($leaveApplication));
 
@@ -77,10 +93,12 @@ class LeaveApplicationController extends Controller
 
     public function update(Request $request, LeaveApplication $leave)
     {
+        // PRESERVED: Original validation checks
         if ($leave->employee_id !== auth()->user()->id || $leave->created_at->toDateString() !== now()->toDateString()) {
             return back()->with('error', 'You can only edit your today\'s application.');
         }
 
+        // PRESERVED: Original validation rules
         $request->validate([
             'leave_type_id' => 'required|exists:leave_types,id',
             'start_date' => 'required|date',
@@ -89,6 +107,7 @@ class LeaveApplicationController extends Controller
             'day_type' => 'required|in:full,half',
         ]);
 
+        // PRESERVED: Original update logic
         $leave->update([
             'leave_type_id' => $request->leave_type_id,
             'start_date' => $request->start_date,
@@ -102,10 +121,12 @@ class LeaveApplicationController extends Controller
 
     public function destroy(LeaveApplication $leave)
     {
+        // PRESERVED: Original validation checks
         if ($leave->employee_id !== auth()->user()->id || $leave->created_at->toDateString() !== now()->toDateString()) {
             return back()->with('error', 'You can only delete your today\'s application.');
         }
 
+        // PRESERVED: Original delete logic
         $leave->delete();
 
         return back()->with('success', 'Leave application deleted successfully!');

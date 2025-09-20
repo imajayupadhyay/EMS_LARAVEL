@@ -13,7 +13,7 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $today = now()->toDateString();
-        $employeeId = auth('employee')->id(); // ✅ employee guard
+        $employeeId = auth()->user()->id;
 
         $query = Task::where('employee_id', $employeeId);
 
@@ -26,12 +26,29 @@ class TaskController extends Controller
             $query->where('task_content', 'like', '%' . $request->keyword . '%');
         }
 
-        $tasks = $query->orderByDesc('task_date')->paginate(5)->withQueryString();
+        $tasks = $query->orderByDesc('task_date')->paginate(10)->withQueryString();
+
+        // Calculate statistics
+        $statistics = [
+            'total' => Task::where('employee_id', $employeeId)->count(),
+            'this_week' => Task::where('employee_id', $employeeId)
+                              ->whereBetween('task_date', [
+                                  now()->startOfWeek()->toDateString(),
+                                  now()->endOfWeek()->toDateString()
+                              ])
+                              ->count(),
+            'this_month' => Task::where('employee_id', $employeeId)
+                               ->whereMonth('task_date', now()->month)
+                               ->whereYear('task_date', now()->year)
+                               ->count(),
+            'streak' => $this->calculateStreak($employeeId),
+        ];
 
         return Inertia::render('Employee/Tasks/Index', [
             'today'   => $today,
             'tasks'   => $tasks,
             'filters' => $request->only(['date', 'keyword']),
+            'statistics' => $statistics,
         ]);
     }
 
@@ -42,7 +59,7 @@ class TaskController extends Controller
         ]);
 
         $today = Carbon::now()->toDateString();
-        $employeeId = auth('employee')->id(); // ✅ employee guard
+        $employeeId = auth()->user()->id;
 
         if ($request->task_id) {
             // Update
@@ -78,7 +95,7 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
-        $employeeId = auth('employee')->id(); // ✅ employee guard
+        $employeeId = auth()->user()->id;
 
         if ($task->employee_id !== $employeeId || $task->task_date !== now()->toDateString()) {
             return back()->with('error', 'Unauthorized action.');
@@ -87,5 +104,43 @@ class TaskController extends Controller
         $task->delete();
 
         return back()->with('success', 'Task deleted successfully.');
+    }
+
+    /**
+     * Calculate the current streak of consecutive days with tasks
+     */
+    private function calculateStreak($employeeId)
+    {
+        $streak = 0;
+        $currentDate = Carbon::now()->subDay(); // Start from yesterday
+        
+        while (true) {
+            $hasTask = Task::where('employee_id', $employeeId)
+                          ->where('task_date', $currentDate->toDateString())
+                          ->exists();
+            
+            if (!$hasTask) {
+                break;
+            }
+            
+            $streak++;
+            $currentDate->subDay();
+            
+            // Limit to prevent infinite loops
+            if ($streak > 365) {
+                break;
+            }
+        }
+        
+        // Check if there's a task for today to include it in the streak
+        $hasTodayTask = Task::where('employee_id', $employeeId)
+                            ->where('task_date', now()->toDateString())
+                            ->exists();
+        
+        if ($hasTodayTask) {
+            $streak++;
+        }
+        
+        return $streak;
     }
 }
