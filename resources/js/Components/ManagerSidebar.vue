@@ -230,12 +230,12 @@ const sections = [
     { 
       name: 'View Shifts', 
       route: 'manager.shifts.index',
-      svg: '<svg>...</svg>' // Clock icon
+      svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>'
     },
-    { 
+     { 
       name: 'Assign Shifts', 
       route: 'manager.employees.shifts.index',
-      svg: '<svg>...</svg>' // User clock icon
+      svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M22 12h-6"/><path d="M19 9v6"/></svg>'
     },
   ]
 },
