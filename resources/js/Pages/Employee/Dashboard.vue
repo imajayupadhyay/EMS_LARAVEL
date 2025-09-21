@@ -46,7 +46,7 @@
     <!-- Stats Cards Grid -->
     <div class="stats-grid">
       <!-- Working Days Card -->
-      <div class="stat-card">
+      <!-- <div class="stat-card">
         <div class="stat-header">
           <div class="stat-icon stat-icon-primary">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -62,7 +62,7 @@
           <h3 class="stat-value">{{ workingDays || 0 }}</h3>
           <p class="stat-label">Working Days</p>
         </div>
-      </div>
+      </div> -->
 
       <!-- Total Hours Card -->
       <!-- <div class="stat-card">
@@ -82,7 +82,7 @@
       </div> -->
 
       <!-- Remaining Leaves Card -->
-      <div class="stat-card">
+      <!-- <div class="stat-card">
         <div class="stat-header">
           <div class="stat-icon stat-icon-warning">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -96,10 +96,10 @@
           <h3 class="stat-value">{{ remainingLeaves || 0 }}</h3>
           <p class="stat-label">Remaining Leaves</p>
         </div>
-      </div>
+      </div> -->
 
       <!-- Status Card -->
-      <div class="stat-card">
+      <!-- <div class="stat-card">
         <div class="stat-header">
           <div class="stat-icon stat-icon-info">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -113,7 +113,7 @@
           <h3 class="stat-value">{{ isPunchedIn ? 'Active' : 'Inactive' }}</h3>
           <p class="stat-label">Attendance Status</p>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- Quick Actions -->
