@@ -8,6 +8,7 @@ use App\Http\Controllers\Employee\LeaveApplicationController;
 use App\Http\Controllers\Employee\LeaveSummaryController;
 use App\Http\Controllers\Employee\AttendanceController;
 use App\Http\Controllers\Employee\HolidayController;
+use App\Http\Controllers\Employee\DashboardController;
 
 
 
@@ -17,7 +18,8 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth:employee'])->prefix('employee')->name('employee.')->group(function () {
     // Dashboard
-    Route::get('/dashboard', fn() => Inertia::render('Employee/Dashboard'))->name('dashboard');
+       Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
 
 Route::get('/holidays', [HolidayController::class, 'index'])->name('holidays.index');
 
