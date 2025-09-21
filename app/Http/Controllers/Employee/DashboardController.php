@@ -66,12 +66,151 @@ class DashboardController extends Controller
                 ->format('h:i A');
         }
         
+        // NEW: Check for warnings/appreciation to show
+        $warningData = $this->checkForWarnings($employee);
+        
         return Inertia::render('Employee/Dashboard', [
             'workingDays' => $workingDays,
             'totalHours' => $totalHours,
             'remainingLeaves' => $remainingLeaves,
             'isPunchedIn' => $isPunchedIn,
             'punchInTime' => $punchInTime,
+            'warningData' => $warningData,  // NEW: Pass warning data to frontend
+        ]);
+    }
+    
+    /**
+     * NEW METHOD: Check if employee should see any warnings or appreciation messages
+     */
+    private function checkForWarnings($employee)
+    {
+        $today = now()->toDateString();
+        
+        // Get today's punches
+        $todayPunches = Punch::where('employee_id', $employee->id)
+            ->whereDate('punched_in_at', $today)
+            ->orderBy('punched_in_at')
+            ->get();
+        
+        if ($todayPunches->isEmpty()) {
+            return null;
+        }
+        
+        $shift = $employee->shift;
+        $warningType = null;
+        $warningMessage = null;
+        $punchId = null;
+        $currentCount = 0;
+        
+        // Check for late arrival (on first punch in of the day)
+        $firstPunch = $todayPunches->first();
+        if ($firstPunch && !$firstPunch->late_warning_shown) {
+            $punchInTime = Carbon::parse($firstPunch->punched_in_at);
+            
+            if ($shift && $shift->time_from) {
+                // Parse shift time
+                $timeString = $shift->time_from;
+                if ($timeString instanceof \Carbon\Carbon) {
+                    $timeString = $timeString->format('H:i:s');
+                }
+                if (strlen($timeString) > 8) {
+                    $timeParts = explode(' ', $timeString);
+                    $timeString = end($timeParts);
+                }
+                
+                $shiftStartTime = Carbon::parse($today . ' ' . $timeString);
+                $lateThreshold = $shiftStartTime->copy()->addMinutes(10); // 10 minutes grace period
+                
+                if ($punchInTime->gt($lateThreshold)) {
+                    $minutesLate = $shiftStartTime->diffInMinutes($punchInTime);
+                    $currentCount = $employee->late_warning_count + 1; // Will be incremented
+                    $warningType = 'late';
+                    $warningMessage = "You are {$minutesLate} minutes late for your shift. This is warning #{$currentCount}. Please try to arrive on time.";
+                    $punchId = $firstPunch->id;
+                }
+            }
+        }
+        
+        // Check for overtime appreciation (on last punch out of the day)
+        // Only check if no late warning needs to be shown
+        if (!$warningType) {
+            $lastPunchWithOut = $todayPunches->where('punched_out_at', '!=', null)->last();
+            
+            if ($lastPunchWithOut && !$lastPunchWithOut->overtime_appreciation_shown) {
+                $punchOutTime = Carbon::parse($lastPunchWithOut->punched_out_at);
+                
+                if ($shift && $shift->time_to) {
+                    // Parse shift end time
+                    $timeString = $shift->time_to;
+                    if ($timeString instanceof \Carbon\Carbon) {
+                        $timeString = $timeString->format('H:i:s');
+                    }
+                    if (strlen($timeString) > 8) {
+                        $timeParts = explode(' ', $timeString);
+                        $timeString = end($timeParts);
+                    }
+                    
+                    $shiftEndTime = Carbon::parse($today . ' ' . $timeString);
+                    $overtimeThreshold = $shiftEndTime->copy()->addHour(); // 1 hour overtime
+                    
+                    if ($punchOutTime->gte($overtimeThreshold)) {
+                        $extraMinutes = $shiftEndTime->diffInMinutes($punchOutTime);
+                        $extraHours = floor($extraMinutes / 60);
+                        $remainingMinutes = $extraMinutes % 60;
+                        
+                        $currentCount = $employee->overtime_appreciation_count + 1; // Will be incremented
+                        $warningType = 'appreciation';
+                        $warningMessage = "Great job! You worked {$extraHours} hour(s) and {$remainingMinutes} minute(s) extra today. This is appreciation #{$currentCount}. Your dedication is valued!";
+                        $punchId = $lastPunchWithOut->id;
+                    }
+                }
+            }
+        }
+        
+        return [
+            'type' => $warningType,
+            'message' => $warningMessage,
+            'punchId' => $punchId,
+            'currentCount' => $currentCount,
+        ];
+    }
+    
+    /**
+     * NEW METHOD: Mark warning/appreciation as shown and increment counter
+     */
+    public function markWarningShown(Request $request)
+    {
+        $validated = $request->validate([
+            'punch_id' => 'required|exists:punches,id',
+            'type' => 'required|in:late,appreciation',
+        ]);
+        
+        $employee = auth()->guard('employee')->user();
+        
+        $punch = Punch::where('id', $validated['punch_id'])
+            ->where('employee_id', $employee->id)
+            ->first();
+        
+        if (!$punch) {
+            return response()->json(['success' => false, 'message' => 'Punch not found'], 404);
+        }
+        
+        // Update punch record to mark warning as shown
+        if ($validated['type'] === 'late') {
+            $punch->update(['late_warning_shown' => true]);
+            // Increment late warning counter for employee
+            $employee->increment('late_warning_count');
+        } else {
+            $punch->update(['overtime_appreciation_shown' => true]);
+            // Increment overtime appreciation counter for employee
+            $employee->increment('overtime_appreciation_count');
+        }
+        
+        return response()->json([
+            'success' => true,
+            'current_count' => $validated['type'] === 'late' 
+                ? $employee->late_warning_count 
+                : $employee->overtime_appreciation_count
         ]);
     }
 }

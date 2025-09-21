@@ -1,5 +1,32 @@
 <template>
   <div class="dashboard-container">
+    <!-- Warning/Appreciation Modal -->
+    <div v-if="showWarningModal" class="modal-overlay" @click="closeWarningModal">
+      <div class="warning-modal" @click.stop>
+        <div :class="['modal-icon', warningData?.type === 'late' ? 'modal-icon-warning' : 'modal-icon-success']">
+          <svg v-if="warningData?.type === 'late'" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <svg v-else width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        
+        <h3 :class="['modal-title', warningData?.type === 'late' ? 'text-warning' : 'text-success']">
+          {{ warningData?.type === 'late' ? 'Late Arrival Notice' : 'Overtime Appreciation' }}
+        </h3>
+        
+        <p class="modal-message">{{ warningData?.message }}</p>
+        
+        <button @click="closeWarningModal" class="modal-close-btn">
+          I Understand
+        </button>
+      </div>
+    </div>
+
     <!-- Welcome Header -->
     <div class="welcome-header">
       <div class="welcome-content">
@@ -45,75 +72,7 @@
 
     <!-- Stats Cards Grid -->
     <div class="stats-grid">
-      <!-- Working Days Card -->
-      <!-- <div class="stat-card">
-        <div class="stat-header">
-          <div class="stat-icon stat-icon-primary">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-          </div>
-          <span class="stat-badge">This Month</span>
-        </div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ workingDays || 0 }}</h3>
-          <p class="stat-label">Working Days</p>
-        </div>
-      </div> -->
-
-      <!-- Total Hours Card -->
-      <!-- <div class="stat-card">
-        <div class="stat-header">
-          <div class="stat-icon stat-icon-success">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-          </div>
-          <span class="stat-badge">This Month</span>
-        </div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ totalHours || 0 }}</h3>
-          <p class="stat-label">Total Hours</p>
-        </div>
-      </div> -->
-
-      <!-- Remaining Leaves Card -->
-      <!-- <div class="stat-card">
-        <div class="stat-header">
-          <div class="stat-icon stat-icon-warning">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-            </svg>
-          </div>
-          <span class="stat-badge">Available</span>
-        </div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ remainingLeaves || 0 }}</h3>
-          <p class="stat-label">Remaining Leaves</p>
-        </div>
-      </div> -->
-
-      <!-- Status Card -->
-      <!-- <div class="stat-card">
-        <div class="stat-header">
-          <div class="stat-icon stat-icon-info">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-          </div>
-          <span class="stat-badge">Today</span>
-        </div>
-        <div class="stat-content">
-          <h3 class="stat-value">{{ isPunchedIn ? 'Active' : 'Inactive' }}</h3>
-          <p class="stat-label">Attendance Status</p>
-        </div>
-      </div> -->
+      <!-- Stats cards removed as per original code -->
     </div>
 
     <!-- Quick Actions -->
@@ -209,8 +168,10 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
 import EmployeeLayout from '@/Layouts/EmployeeLayout.vue'
+import axios from 'axios'
 
 const page = usePage()
 const auth = page.props.auth || {}
@@ -219,8 +180,46 @@ const totalHours = page.props.totalHours || 0
 const remainingLeaves = page.props.remainingLeaves || 0
 const isPunchedIn = page.props.isPunchedIn || false
 const punchInTime = page.props.punchInTime || null
+const warningData = page.props.warningData || null
 
 defineOptions({ layout: EmployeeLayout })
+
+const showWarningModal = ref(false)
+
+onMounted(() => {
+  // Check if we should show the warning modal
+  if (warningData && warningData.type && warningData.message && warningData.punchId) {
+    // Check localStorage to see if we've already shown this today
+    const today = new Date().toISOString().split('T')[0]
+    const storageKey = `warning_shown_${warningData.punchId}_${today}`
+    
+    if (!localStorage.getItem(storageKey)) {
+      showWarningModal.value = true
+    }
+  }
+})
+
+const closeWarningModal = async () => {
+  if (warningData && warningData.punchId && warningData.type) {
+    // Mark as shown in database
+    try {
+      await axios.post(route('employee.dashboard.mark-warning-shown'), {
+        punch_id: warningData.punchId,
+        type: warningData.type,
+      })
+      
+      // Store in localStorage to prevent showing again today
+      const today = new Date().toISOString().split('T')[0]
+      const storageKey = `warning_shown_${warningData.punchId}_${today}`
+      localStorage.setItem(storageKey, 'true')
+      
+    } catch (error) {
+      console.error('Error marking warning as shown:', error)
+    }
+  }
+  
+  showWarningModal.value = false
+}
 
 const goTo = (routeName) => {
   router.get(route(routeName))
@@ -233,6 +232,110 @@ const getCurrentDate = () => {
 </script>
 
 <style scoped>
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+/* Warning Modal */
+.warning-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Icon */
+.modal-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.modal-icon-warning {
+  background-color: #FEF3C7;
+  color: #D97706;
+}
+
+.modal-icon-success {
+  background-color: #D1FAE5;
+  color: #059669;
+}
+
+/* Modal Title */
+.modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.text-warning {
+  color: #D97706;
+}
+
+.text-success {
+  color: #059669;
+}
+
+/* Modal Message */
+.modal-message {
+  font-size: 16px;
+  color: #6B7280;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* Modal Close Button */
+.modal-close-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.modal-close-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+}
+
+.modal-close-btn:active {
+  transform: translateY(0);
+}
+
 /* Dashboard Container */
 .dashboard-container {
   max-width: 1400px;
@@ -396,83 +499,6 @@ const getCurrentDate = () => {
   margin-bottom: 2rem;
 }
 
-.stat-card {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  border: 1px solid #f3f4f6;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-}
-
-.stat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-icon-primary {
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-  color: white;
-}
-
-.stat-icon-success {
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-  color: white;
-}
-
-.stat-icon-warning {
-  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
-  color: white;
-}
-
-.stat-icon-info {
-  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-  color: white;
-}
-
-.stat-badge {
-  padding: 0.25rem 0.75rem;
-  background: #f3f4f6;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6b7280;
-}
-
-.stat-content {
-  margin-bottom: 1rem;
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0.5rem 0 0 0;
-}
-
 /* Section Title */
 .section-title {
   display: flex;
@@ -619,10 +645,6 @@ const getCurrentDate = () => {
     align-items: center;
   }
 
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
   .actions-grid {
     grid-template-columns: 1fr;
   }
@@ -630,19 +652,11 @@ const getCurrentDate = () => {
   .action-card {
     padding: 1rem;
   }
-
-  .stat-value {
-    font-size: 2rem;
-  }
 }
 
 @media (max-width: 640px) {
   .welcome-title {
     font-size: 1.25rem;
-  }
-
-  .stat-card {
-    padding: 1.25rem;
   }
 
   .action-icon {
@@ -667,15 +681,9 @@ const getCurrentDate = () => {
   }
 }
 
-.stat-card,
 .action-card {
   animation: fadeInUp 0.5s ease-out;
 }
-
-.stat-card:nth-child(1) { animation-delay: 0.1s; }
-.stat-card:nth-child(2) { animation-delay: 0.2s; }
-.stat-card:nth-child(3) { animation-delay: 0.3s; }
-.stat-card:nth-child(4) { animation-delay: 0.4s; }
 
 .action-card:nth-child(1) { animation-delay: 0.1s; }
 .action-card:nth-child(2) { animation-delay: 0.2s; }
@@ -686,21 +694,5 @@ const getCurrentDate = () => {
 .action-card:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.2);
-}
-
-/* Loading States */
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-.loading {
-  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite;
 }
 </style>
