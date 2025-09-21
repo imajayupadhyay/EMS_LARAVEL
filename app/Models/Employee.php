@@ -34,6 +34,9 @@ class Employee extends Authenticatable
         'monthly_salary',
         'salary_currency',
         'salary_type',
+        // NEW: Warning counter fields
+        'late_warning_count',
+        'overtime_appreciation_count',
     ];
 
     /**
@@ -48,6 +51,8 @@ class Employee extends Authenticatable
         'dob' => 'date',
         'doj' => 'date',
         'monthly_salary' => 'decimal:2',
+        'late_warning_count' => 'integer',              // NEW: Cast to integer
+        'overtime_appreciation_count' => 'integer',     // NEW: Cast to integer
     ];
 
     /**
@@ -65,10 +70,12 @@ class Employee extends Authenticatable
     {
         return $this->belongsTo(Designation::class);
     }
-public function shift()
+
+    public function shift()
     {
         return $this->belongsTo(Shift::class);
     }
+    
     /**
      * Defensive mutator: hash password only when required.
      * If you already Hash::make() in controller, this will not double-hash
