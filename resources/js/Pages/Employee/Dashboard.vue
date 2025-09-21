@@ -37,14 +37,84 @@
         <h3 class="status-title">{{ isPunchedIn ? 'You are Punched In' : 'You are Punched Out' }}</h3>
         <p class="status-subtitle">{{ isPunchedIn ? 'Your attendance is being tracked' : 'Please punch in to start tracking' }}</p>
       </div>
-      <div class="status-time" v-if="isPunchedIn">
+      <div class="status-time" v-if="isPunchedIn && punchInTime">
         <span class="time-label">Since</span>
-        <span class="time-value">09:30 AM</span>
+        <span class="time-value">{{ punchInTime }}</span>
       </div>
     </div>
 
     <!-- Stats Cards Grid -->
-    
+    <div class="stats-grid">
+      <!-- Working Days Card -->
+      <!-- <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon stat-icon-primary">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <span class="stat-badge">This Month</span>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ workingDays || 0 }}</h3>
+          <p class="stat-label">Working Days</p>
+        </div>
+      </div> -->
+
+      <!-- Total Hours Card -->
+      <!-- <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon stat-icon-success">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <span class="stat-badge">This Month</span>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ totalHours || 0 }}</h3>
+          <p class="stat-label">Total Hours</p>
+        </div>
+      </div> -->
+
+      <!-- Remaining Leaves Card -->
+      <!-- <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon stat-icon-warning">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+            </svg>
+          </div>
+          <span class="stat-badge">Available</span>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ remainingLeaves || 0 }}</h3>
+          <p class="stat-label">Remaining Leaves</p>
+        </div>
+      </div> -->
+
+      <!-- Status Card -->
+      <!-- <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon stat-icon-info">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <span class="stat-badge">Today</span>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ isPunchedIn ? 'Active' : 'Inactive' }}</h3>
+          <p class="stat-label">Attendance Status</p>
+        </div>
+      </div> -->
+    </div>
 
     <!-- Quick Actions -->
     <div class="quick-actions-section">
@@ -135,9 +205,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Recent Activity -->
-    
   </div>
 </template>
 
@@ -147,10 +214,11 @@ import EmployeeLayout from '@/Layouts/EmployeeLayout.vue'
 
 const page = usePage()
 const auth = page.props.auth || {}
-const workingDays = page.props.workingDays
-const totalHours = page.props.totalHours
-const remainingLeaves = page.props.remainingLeaves
+const workingDays = page.props.workingDays || 0
+const totalHours = page.props.totalHours || 0
+const remainingLeaves = page.props.remainingLeaves || 0
 const isPunchedIn = page.props.isPunchedIn || false
+const punchInTime = page.props.punchInTime || null
 
 defineOptions({ layout: EmployeeLayout })
 
@@ -405,42 +473,6 @@ const getCurrentDate = () => {
   margin: 0.5rem 0 0 0;
 }
 
-.stat-footer {
-  margin-top: 1rem;
-}
-
-.progress-bar {
-  height: 6px;
-  background: #f3f4f6;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%);
-  border-radius: 3px;
-  transition: width 0.6s ease;
-}
-
-.progress-text {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-.stat-detail {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.stat-detail svg {
-  color: #10b981;
-}
-
 /* Section Title */
 .section-title {
   display: flex;
@@ -557,72 +589,6 @@ const getCurrentDate = () => {
   transform: translateX(4px);
 }
 
-/* Recent Activity */
-.recent-activity-section {
-  margin-bottom: 2rem;
-}
-
-.activity-list {
-  background: white;
-  border-radius: 16px;
-  padding: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.activity-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 12px;
-  transition: background 0.2s;
-}
-
-.activity-item:hover {
-  background: #f9fafb;
-}
-
-.activity-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.activity-icon-success {
-  background: #dcfce7;
-  color: #059669;
-}
-
-.activity-icon-info {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.activity-icon-warning {
-  background: #fed7aa;
-  color: #d97706;
-}
-
-.activity-content {
-  flex: 1;
-}
-
-.activity-title {
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 0.25rem 0;
-}
-
-.activity-time {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .dashboard-container {
@@ -702,8 +668,7 @@ const getCurrentDate = () => {
 }
 
 .stat-card,
-.action-card,
-.activity-item {
+.action-card {
   animation: fadeInUp 0.5s ease-out;
 }
 

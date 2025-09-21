@@ -16,6 +16,7 @@ class Punch extends Model
         'punched_in_at',
         'punched_out_at',
         'location',
+        'is_auto_punchout',
     ];
 
     protected $casts = [
@@ -23,6 +24,7 @@ class Punch extends Model
         'punched_out_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'is_auto_punchout' => 'boolean',
     ];
 
     public function getTypeAttribute()
@@ -41,5 +43,19 @@ class Punch extends Model
     public function scopeToday($query)
     {
         return $query->whereDate('punched_in_at', Carbon::today()->toDateString());
+    }
+     /**
+     * Scope for open punches (not punched out yet)
+     */
+    public function scopeOpen($query)
+    {
+        return $query->whereNull('punched_out_at');
+    }
+     /**
+     * Scope for auto punch-outs
+     */
+    public function scopeAutoPunchedOut($query)
+    {
+        return $query->where('is_auto_punchout', true);
     }
 }

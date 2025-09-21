@@ -15,8 +15,17 @@ class Kernel extends ConsoleKernel
         // Run auto-logout every 30 minutes
         $schedule->command('auto:logout-punches')->everyThirtyMinutes()->withoutOverlapping();
 
-        // Example: you can add more scheduled commands here
-        // $schedule->command('inspire')->hourly();
+        // Run auto punch-out at 11:59 PM every day for employees who forgot to punch out
+        $schedule->command('punch:auto-out --today')
+            ->dailyAt('23:59')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/auto-punchout.log'));
+
+        // Optional: Run cleanup for previous days' open punches every hour
+        $schedule->command('punch:auto-out')
+            ->hourly()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/auto-punchout.log'));
     }
 
     /**
