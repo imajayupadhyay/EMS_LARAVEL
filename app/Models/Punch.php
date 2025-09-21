@@ -17,6 +17,8 @@ class Punch extends Model
         'punched_out_at',
         'location',
         'is_auto_punchout',
+        'late_warning_shown',              // NEW: Track if late warning was shown
+        'overtime_appreciation_shown',     // NEW: Track if overtime appreciation was shown
     ];
 
     protected $casts = [
@@ -25,6 +27,8 @@ class Punch extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'is_auto_punchout' => 'boolean',
+        'late_warning_shown' => 'boolean',              // NEW: Cast to boolean
+        'overtime_appreciation_shown' => 'boolean',     // NEW: Cast to boolean
     ];
 
     public function getTypeAttribute()
@@ -44,14 +48,16 @@ class Punch extends Model
     {
         return $query->whereDate('punched_in_at', Carbon::today()->toDateString());
     }
-     /**
+    
+    /**
      * Scope for open punches (not punched out yet)
      */
     public function scopeOpen($query)
     {
         return $query->whereNull('punched_out_at');
     }
-     /**
+    
+    /**
      * Scope for auto punch-outs
      */
     public function scopeAutoPunchedOut($query)
