@@ -377,9 +377,7 @@ watch(selectedMonth, (val) => {
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Last Out
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total Hours
-                </th>
+              
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
@@ -399,9 +397,9 @@ watch(selectedMonth, (val) => {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {{ formatTime(record.last_out) }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <!-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {{ record.total_hours }}h
-                </td>
+                </td> -->
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
                     :class="[
