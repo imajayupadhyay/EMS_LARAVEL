@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\UserManageController;
 use App\Http\Controllers\Admin\MarketerTrackingController;
 use App\Http\Controllers\Admin\MarketerController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\KraController;
 
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
@@ -68,18 +69,12 @@ Route::post('/shifts', [App\Http\Controllers\Admin\ShiftController::class, 'stor
 Route::post('/shifts/update', [App\Http\Controllers\Admin\ShiftController::class, 'update'])->name('shifts.update');
 Route::post('/shifts/delete', [App\Http\Controllers\Admin\ShiftController::class, 'destroy'])->name('shifts.destroy');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Employee Management
-    |--------------------------------------------------------------------------
-    */
-    // Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');
-    // Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
-
-    // Route::get('/employees', [EmployeeManageController::class, 'index'])->name('employees.index');
-    // Route::get('/employees/manage', [EmployeeManageController::class, 'index'])->name('employees.manage');
-    // Route::post('/employees/manage/{employee}', [EmployeeManageController::class, 'update'])->name('employees.manage.update');
-    // Route::post('/employees/manage/{employee}/delete', [EmployeeManageController::class, 'destroy'])->name('employees.manage.destroy');
+// KRA Management Routes - Following your existing pattern
+Route::get('/kras', [KraController::class, 'index'])->name('kras.index');
+Route::post('/kras', [KraController::class, 'store'])->name('kras.store');
+Route::post('/kras/{kra}', [KraController::class, 'update'])->name('kras.update');
+Route::post('/kras/{kra}/delete', [KraController::class, 'destroy'])->name('kras.destroy');
+Route::post('/kras/{kra}/toggle-status', [KraController::class, 'toggleStatus'])->name('kras.toggle-status');
 
 
 
