@@ -241,16 +241,6 @@
                 />
               </div>
 
-              <!-- Pay Scale -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Pay Scale</label>
-                <input
-                  v-model="form.pay_scale"
-                  type="text"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="e.g., Grade A, Level 5"
-                />
-              </div>
 
               <!-- Work Location -->
               <div>
@@ -407,7 +397,6 @@ export default {
         marital_status: this.employee.marital_status || '',
         address: this.employee.address || '',
         zip: this.employee.zip || '',
-        pay_scale: this.employee.pay_scale || '',
         work_location: this.employee.work_location || '',
         department_id: this.employee.department_id || '',
         designation_id: this.employee.designation_id || '',
@@ -469,7 +458,6 @@ export default {
       formData.append('marital_status', this.form.marital_status || '');
       formData.append('address', this.form.address || '');
       formData.append('zip', this.form.zip || '');
-      formData.append('pay_scale', this.form.pay_scale || '');
       formData.append('work_location', this.form.work_location || '');
       formData.append('department_id', this.form.department_id || '');
       formData.append('designation_id', this.form.designation_id || '');
