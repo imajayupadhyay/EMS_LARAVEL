@@ -205,6 +205,11 @@
               <span class="info-label">Reason</span>
               <p class="reason-text">{{ app.reason }}</p>
             </div>
+
+            <div class="timestamp-section">
+              <span class="info-label">Request Time</span>
+              <span class="timestamp-text">{{ formatDateTime(app.created_at) }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -282,6 +287,18 @@
                   <div :class="['status-badge', getStatusClass(selectedApp.status)]">
                     {{ selectedApp.status }}
                   </div>
+                </div>
+                <div class="detail-item">
+                  <label>Day Type</label>
+                  <p>{{ selectedApp.day_type || 'full' }}</p>
+                </div>
+                <div class="detail-item">
+                  <label>Request Time</label>
+                  <p>{{ formatDateTime(selectedApp.created_at) }}</p>
+                </div>
+                <div class="detail-item">
+                  <label>Last Updated</label>
+                  <p>{{ formatDateTime(selectedApp.updated_at) }}</p>
                 </div>
                 <div class="detail-item full-width">
                   <label>Reason</label>
@@ -392,6 +409,20 @@ const formatDate = (dateStr) => {
   if (!dateStr) return 'N/A'
   const [y, m, d] = dateStr.split('-')
   return `${d}-${m}-${y}`
+}
+
+const formatDateTime = (dateTimeStr) => {
+  if (!dateTimeStr) return 'N/A'
+  const date = new Date(dateTimeStr)
+  return date.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
 }
 
 const calculateDuration = (startDate, endDate) => {
@@ -766,6 +797,21 @@ const calculateDuration = (startDate, endDate) => {
   overflow: hidden;
 }
 
+.timestamp-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+}
+
+.timestamp-text {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
 /* Empty State */
 .empty-state {
   text-align: center;
@@ -885,6 +931,12 @@ const calculateDuration = (startDate, endDate) => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .detail-item {
