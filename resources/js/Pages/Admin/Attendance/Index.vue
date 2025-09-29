@@ -1014,7 +1014,7 @@ const absentCount = computed(() => notPunchedList.value.length)
         </div>
       </div>
 
-      <div class="metric-card absent" @click="openListModal('absent')">
+      <div class="metric-card absent" @click="openListModal('not-punched')">
         <div class="metric-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
