@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'HRMS'),
+    'name' => env('APP_NAME', 'Test Prep HRMS'),
     'timezone' => env('APP_TIMEZONE', 'UTC'),
 
 
