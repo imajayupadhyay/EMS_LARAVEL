@@ -10,6 +10,7 @@ use App\Models\LeaveAssignment;
 use App\Models\AdminNotification;
 use App\Mail\LeaveApplicationNotificationMail;
 use Illuminate\Support\Facades\Mail;
+use Carbon\Carbon;
 
 class LeaveApplicationController extends Controller
 {
@@ -52,6 +53,15 @@ class LeaveApplicationController extends Controller
             'day_type' => 'required|in:full,half',
         ]);
 
+        // Check 12-hour advance notice requirement
+        $startDateTime = Carbon::parse($request->start_date);
+        $now = Carbon::now();
+
+        // If the leave starts within the next 12 hours, reject the request
+        if ($startDateTime->lessThan($now->addHours(12))) {
+            return back()->with('error', 'Leave applications must be submitted at least 12 hours in advance. Please contact your manager directly for urgent leave requests.');
+        }
+
         // PRESERVED: Original calculation logic
         $deduct = $request->day_type === 'half' ? 0.5 : 1;
 
@@ -93,9 +103,13 @@ class LeaveApplicationController extends Controller
 
     public function update(Request $request, LeaveApplication $leave)
     {
-        // PRESERVED: Original validation checks
-        if ($leave->employee_id !== auth()->user()->id || $leave->created_at->toDateString() !== now()->toDateString()) {
-            return back()->with('error', 'You can only edit your today\'s application.');
+        // Check if user owns the application and if it's still pending
+        if ($leave->employee_id !== auth()->user()->id) {
+            return back()->with('error', 'You can only edit your own applications.');
+        }
+
+        if ($leave->status !== 'pending') {
+            return back()->with('error', 'You can only edit pending applications.');
         }
 
         // PRESERVED: Original validation rules
@@ -106,6 +120,15 @@ class LeaveApplicationController extends Controller
             'reason' => 'required|string|max:500',
             'day_type' => 'required|in:full,half',
         ]);
+
+        // Check 12-hour advance notice requirement for updates
+        $startDateTime = Carbon::parse($request->start_date);
+        $now = Carbon::now();
+
+        // If the leave starts within the next 12 hours, reject the update
+        if ($startDateTime->lessThan($now->addHours(12))) {
+            return back()->with('error', 'Leave applications must be submitted at least 12 hours in advance. Please contact your manager directly for urgent leave requests.');
+        }
 
         // PRESERVED: Original update logic
         $leave->update([
@@ -121,9 +144,13 @@ class LeaveApplicationController extends Controller
 
     public function destroy(LeaveApplication $leave)
     {
-        // PRESERVED: Original validation checks
-        if ($leave->employee_id !== auth()->user()->id || $leave->created_at->toDateString() !== now()->toDateString()) {
-            return back()->with('error', 'You can only delete your today\'s application.');
+        // Check if user owns the application and if it's still pending
+        if ($leave->employee_id !== auth()->user()->id) {
+            return back()->with('error', 'You can only delete your own applications.');
+        }
+
+        if ($leave->status !== 'pending') {
+            return back()->with('error', 'You can only delete pending applications.');
         }
 
         // PRESERVED: Original delete logic

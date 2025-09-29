@@ -64,6 +64,11 @@ const calculateDays = computed(() => {
 })
 
 const submit = () => {
+  // Check 12-hour advance notice requirement
+  if (!validateAdvanceNotice()) {
+    return
+  }
+
   if (editing.value) {
     form.post(route('employee.leave-applications.update', editing.value.id), {
       preserveScroll: true,
@@ -84,6 +89,23 @@ const submit = () => {
   }
 }
 
+const validateAdvanceNotice = () => {
+  if (!form.start_date) {
+    return true // Let backend validation handle missing date
+  }
+
+  const startDate = new Date(form.start_date)
+  const now = new Date()
+  const twelveHoursFromNow = new Date(now.getTime() + (12 * 60 * 60 * 1000))
+
+  if (startDate < twelveHoursFromNow) {
+    alert('⚠️ Leave Request Not Allowed\n\nLeave applications must be submitted at least 12 hours in advance.\n\nFor urgent leave requests, please contact your manager directly.')
+    return false
+  }
+
+  return true
+}
+
 const edit = (app) => {
   form.leave_type_id = app.leave_type_id
   form.start_date = app.start_date
@@ -97,7 +119,7 @@ const edit = (app) => {
 
 const deleteApp = (app) => {
   if (confirm('Are you sure you want to delete this leave request?')) {
-    router.delete(route('employee.leave-applications.destroy', app.id), {
+    router.post(route('employee.leave-applications.destroy', app.id), {}, {
       preserveScroll: true
     })
   }
@@ -126,10 +148,6 @@ const formatDate = (date) => {
   })
 }
 
-const isToday = (dateString) => {
-  const today = new Date().toISOString().split('T')[0]
-  return dateString.split('T')[0] === today
-}
 </script>
 
 <template>
@@ -235,6 +253,25 @@ const isToday = (dateString) => {
             </button>
           </div>
 
+          <!-- 12-Hour Notice Requirement -->
+          <div class="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div class="flex items-start">
+              <div class="flex-shrink-0">
+                <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-amber-800">
+                  Advance Notice Required
+                </h3>
+                <div class="mt-1 text-sm text-amber-700">
+                  <p>Leave applications must be submitted at least <strong>12 hours in advance</strong>. For urgent requests, contact your manager directly.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <form @submit.prevent="submit" class="space-y-4">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <!-- Leave Type -->
@@ -271,13 +308,19 @@ const isToday = (dateString) => {
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                   Start Date <span class="text-red-500">*</span>
                 </label>
-                <input 
-                  type="date" 
-                  v-model="form.start_date" 
-                  class="form-input" 
+                <input
+                  type="date"
+                  v-model="form.start_date"
+                  class="form-input"
                   required
                   :min="new Date().toISOString().split('T')[0]"
                 />
+                <p class="mt-1 text-xs text-blue-600 flex items-center">
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                  </svg>
+                  Must be at least 12 hours from now
+                </p>
                 <p v-if="form.errors.start_date" class="mt-1 text-sm text-red-600">{{ form.errors.start_date }}</p>
               </div>
 
@@ -435,7 +478,7 @@ const isToday = (dateString) => {
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div class="flex items-center space-x-3">
                     <button
-                      v-if="isToday(app.created_at)"
+                      v-if="app.status === 'pending'"
                       @click="edit(app)"
                       class="text-orange-600 hover:text-orange-900"
                       title="Edit"
@@ -445,7 +488,7 @@ const isToday = (dateString) => {
                       </svg>
                     </button>
                     <button
-                      v-if="isToday(app.created_at)"
+                      v-if="app.status === 'pending'"
                       @click="deleteApp(app)"
                       class="text-red-600 hover:text-red-900"
                       title="Delete"
@@ -454,7 +497,7 @@ const isToday = (dateString) => {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                       </svg>
                     </button>
-                    <span v-if="!isToday(app.created_at)" class="text-gray-400 text-xs">
+                    <span v-if="app.status !== 'pending'" class="text-gray-400 text-xs">
                       No actions
                     </span>
                   </div>
@@ -477,13 +520,16 @@ const isToday = (dateString) => {
               <p>{{ formatDate(app.start_date) }} - {{ formatDate(app.end_date) }}</p>
               <p>{{ app.day_type === 'half' ? 'Half Day' : 'Full Day' }}</p>
             </div>
-            <div v-if="isToday(app.created_at)" class="mt-3 flex space-x-3">
+            <div v-if="app.status === 'pending'" class="mt-3 flex space-x-3">
               <button @click="edit(app)" class="text-orange-600 hover:text-orange-900 text-sm font-medium">
                 Edit
               </button>
               <button @click="deleteApp(app)" class="text-red-600 hover:text-red-900 text-sm font-medium">
                 Delete
               </button>
+            </div>
+            <div v-else class="mt-3">
+              <span class="text-gray-400 text-xs">No actions available</span>
             </div>
           </div>
         </div>
