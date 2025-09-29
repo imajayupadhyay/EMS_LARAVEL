@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\Department;
 use App\Models\Designation;
 use App\Models\Shift;  // ✅ Add this
+use App\Models\AdminNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
@@ -77,6 +78,17 @@ class EmployeeController extends Controller
 
         // Create employee
         $employee = Employee::create($validated);
+
+        // Load department relationship for notification
+        $employee->load('department');
+
+        // Create notification for new employee registration
+        AdminNotification::create([
+            'title' => 'New Employee Registered',
+            'message' => $employee->first_name . ' ' . $employee->last_name . ' has been successfully registered.',
+            'body' => 'Employee ID: ' . $employee->id . ' - Department: ' . ($employee->department->name ?? 'N/A'),
+            'is_read' => false,
+        ]);
 
         return redirect()
             ->route('admin.employees.create')

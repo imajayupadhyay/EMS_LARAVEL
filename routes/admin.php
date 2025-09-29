@@ -156,8 +156,11 @@ Route::post('/leave-applications/{leaveApplication}/update-status', [LeaveApplic
 Route::post('/leave-applications/{leaveApplication}/update', [LeaveApplicationController::class, 'update'])->name('leave-applications.update');
 
 
-Route::get('/notifications', [NotificationController::class, 'index'])->name('admin.notifications.index');
-Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.markAsRead');
+Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markSingleAsRead'])->name('notifications.markSingleAsRead');
+Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+Route::post('/notifications/clear', [NotificationController::class, 'clear'])->name('notifications.clear');
 
 Route::get('/salary-report', [SalaryReportController::class, 'index'])->name('salary-report.index');
 Route::post('/salary-report/finalize', [SalaryReportController::class, 'finalize'])

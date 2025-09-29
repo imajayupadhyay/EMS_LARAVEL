@@ -106,9 +106,14 @@
               <div v-if="showNotifications" class="notification-dropdown">
                 <div class="dropdown-header">
                   <h3>Notifications</h3>
-                  <button @click="markAllAsRead" :disabled="markingRead" class="mark-read-btn">
-                    Mark all as read
-                  </button>
+                  <div class="header-actions">
+                    <button @click="markAllAsRead" :disabled="markingRead || unreadCount === 0" class="mark-read-btn">
+                      Mark all as read
+                    </button>
+                    <button @click="clearAllNotifications" :disabled="notifications.length === 0" class="clear-all-btn">
+                      Clear all
+                    </button>
+                  </div>
                 </div>
                 <div class="dropdown-body">
                   <div v-if="loadingNotifications" class="loading-state">
@@ -116,9 +121,25 @@
                     <p>Loading...</p>
                   </div>
                   <div v-else-if="notifications.length" class="notification-list">
-                    <div v-for="note in notifications" :key="note.id" class="notification-item">
-                      <p class="notification-title">{{ note.title }}</p>
-                      <p class="notification-time">{{ note.created_at }}</p>
+                    <div v-for="note in notifications" :key="note.id" class="notification-item" :class="{ 'unread': !note.is_read }">
+                      <div class="notification-content">
+                        <p class="notification-title">{{ note.title }}</p>
+                        <p class="notification-message" v-if="note.message">{{ note.message }}</p>
+                        <p class="notification-time">{{ note.created_at }}</p>
+                      </div>
+                      <div class="notification-actions">
+                        <button v-if="!note.is_read" @click="markSingleAsRead(note.id)" class="action-btn mark-read">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        </button>
+                        <button @click="deleteNotification(note.id)" class="action-btn delete">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <div v-else class="empty-state">
@@ -263,10 +284,12 @@ const loadNotifications = async () => {
   loadingNotifications.value = true
   try {
     const res = await axios.get(route('admin.notifications.index'))
-    notifications.value = res.data.notifications
-    unreadCount.value = notifications.value.filter(n => !n.is_read).length
+    notifications.value = res.data.notifications || []
+    unreadCount.value = res.data.unread_count || 0
   } catch (e) {
     console.error("Failed to load notifications", e)
+    notifications.value = []
+    unreadCount.value = 0
   } finally {
     loadingNotifications.value = false
   }
@@ -282,6 +305,45 @@ const markAllAsRead = async () => {
     console.error("Failed to mark as read", e)
   } finally {
     markingRead.value = false
+  }
+}
+
+const markSingleAsRead = async (id) => {
+  try {
+    await axios.post(route('admin.notifications.markSingleAsRead', id))
+    const notification = notifications.value.find(n => n.id === id)
+    if (notification && !notification.is_read) {
+      notification.is_read = true
+      unreadCount.value = Math.max(0, unreadCount.value - 1)
+    }
+  } catch (e) {
+    console.error("Failed to mark notification as read", e)
+  }
+}
+
+const deleteNotification = async (id) => {
+  try {
+    await axios.delete(route('admin.notifications.destroy', id))
+    const index = notifications.value.findIndex(n => n.id === id)
+    if (index > -1) {
+      const notification = notifications.value[index]
+      if (!notification.is_read) {
+        unreadCount.value = Math.max(0, unreadCount.value - 1)
+      }
+      notifications.value.splice(index, 1)
+    }
+  } catch (e) {
+    console.error("Failed to delete notification", e)
+  }
+}
+
+const clearAllNotifications = async () => {
+  try {
+    await axios.post(route('admin.notifications.clear'))
+    notifications.value = []
+    unreadCount.value = 0
+  } catch (e) {
+    console.error("Failed to clear all notifications", e)
   }
 }
 
@@ -707,6 +769,11 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid #f3f4f6;
 }
 
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .dropdown-header h3 {
   font-size: 1rem;
   font-weight: 600;
@@ -729,6 +796,25 @@ onBeforeUnmount(() => {
 }
 
 .mark-read-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clear-all-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.clear-all-btn:hover:not(:disabled) {
+  color: #dc2626;
+}
+
+.clear-all-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -769,11 +855,70 @@ onBeforeUnmount(() => {
   padding: 0.75rem;
   border-radius: 8px;
   transition: background 0.2s;
-  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-left: 3px solid transparent;
+}
+
+.notification-item.unread {
+  border-left-color: #8b5cf6;
+  background: #faf5ff;
 }
 
 .notification-item:hover {
   background: #f9fafb;
+}
+
+.notification-item.unread:hover {
+  background: #f3e8ff;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.notification-item:hover .notification-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn.mark-read {
+  color: #10b981;
+}
+
+.action-btn.mark-read:hover {
+  background: #dcfce7;
+  color: #059669;
+}
+
+.action-btn.delete {
+  color: #ef4444;
+}
+
+.action-btn.delete:hover {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .notification-title {
@@ -783,9 +928,16 @@ onBeforeUnmount(() => {
   margin: 0 0 0.25rem;
 }
 
-.notification-time {
+.notification-message {
   font-size: 0.75rem;
   color: #6b7280;
+  margin: 0 0 0.25rem;
+  line-height: 1.4;
+}
+
+.notification-time {
+  font-size: 0.75rem;
+  color: #9ca3af;
   margin: 0;
 }
 
