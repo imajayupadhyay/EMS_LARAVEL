@@ -849,16 +849,21 @@ onBeforeUnmount(() => {
 
 .notification-list {
   padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .notification-item {
   padding: 0.75rem;
   border-radius: 8px;
-  transition: background 0.2s;
+  transition: all 0.2s;
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
   border-left: 3px solid transparent;
+  border: 1px solid #f3f4f6;
+  background: #fafafa;
 }
 
 .notification-item.unread {
@@ -867,11 +872,16 @@ onBeforeUnmount(() => {
 }
 
 .notification-item:hover {
-  background: #f9fafb;
+  background: #ffffff;
+  border-color: #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
 }
 
 .notification-item.unread:hover {
-  background: #f3e8ff;
+  background: #f8faff;
+  border-color: #c4b5fd;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
 }
 
 .notification-content {
