@@ -101,7 +101,9 @@ class AttendanceExport implements FromView
                     'employee_name' => trim($employee->first_name . ' ' . $employee->last_name),
                     'department' => $employee->department ? $employee->department->name : '-',
                     'designation' => $employee->designation ? $employee->designation->name : '-',
-                    'attendance' => []
+                    'attendance' => [],
+                    'total_days' => 0,
+                    'present_days' => 0
                 ];
 
                 foreach ($dates as $date) {
@@ -110,16 +112,17 @@ class AttendanceExport implements FromView
 
                     if (isset($punchData[$key])) {
                         $hours = $punchData[$key]['total_hours'];
-                        if ($hours >= 9) {
+                        // Treat 4+ hours as present (including half days)
+                        if ($hours >= 4) {
                             $status = 'Present';
-                        } elseif ($hours >= 4) {
-                            $status = 'Half Day';
+                            $row['present_days']++;
                         } else {
                             $status = 'Absent';
                         }
                     }
 
                     $row['attendance'][$date] = $status;
+                    $row['total_days']++;
                 }
 
                 $attendanceMatrix[] = $row;

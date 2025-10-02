@@ -11,12 +11,15 @@
             @foreach($dates as $date)
                 <th style="text-align: center; min-width: 40px;">{{ \Carbon\Carbon::parse($date)->format('d') }}</th>
             @endforeach
+            <th style="text-align: center; min-width: 80px;">Total Days</th>
+            <th style="text-align: center; min-width: 80px;">Present Days</th>
         </tr>
         <tr style="background-color: #fed7aa; font-size: 10px;">
             <th colspan="3" style="text-align: left;">Date</th>
             @foreach($dates as $date)
                 <th style="text-align: center;">{{ \Carbon\Carbon::parse($date)->format('D') }}</th>
             @endforeach
+            <th colspan="2" style="text-align: center;">Summary</th>
         </tr>
     </thead>
     <tbody>
@@ -36,16 +39,14 @@
                             $bgColor = '#d1fae5'; // Present - green
                             $textColor = '#065f46';
                             $displayText = 'P';
-                        } elseif ($status === 'Half Day') {
-                            $bgColor = '#fed7aa'; // Half Day - orange
-                            $textColor = '#9a3412';
-                            $displayText = 'HD';
                         }
                     @endphp
                     <td style="text-align: center; background-color: {{ $bgColor }}; color: {{ $textColor }}; font-weight: 600;">
                         {{ $displayText }}
                     </td>
                 @endforeach
+                <td style="text-align: center; font-weight: 600;">{{ $row['total_days'] }}</td>
+                <td style="text-align: center; font-weight: 600; background-color: #d1fae5; color: #065f46;">{{ $row['present_days'] }}</td>
             </tr>
         @endforeach
     </tbody>
@@ -54,9 +55,7 @@
 <div style="margin-top: 20px; font-family: Arial, sans-serif; font-size: 12px;">
     <p style="margin: 5px 0;"><strong>Legend:</strong></p>
     <p style="margin: 5px 0;">
-        <span style="background-color: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 3px; font-weight: 600;">P</span> = Present (9+ hours)
-        &nbsp;&nbsp;
-        <span style="background-color: #fed7aa; color: #9a3412; padding: 3px 8px; border-radius: 3px; font-weight: 600;">HD</span> = Half Day (4-9 hours)
+        <span style="background-color: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 3px; font-weight: 600;">P</span> = Present (4+ hours)
         &nbsp;&nbsp;
         <span style="background-color: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 3px; font-weight: 600;">A</span> = Absent (&lt;4 hours)
     </p>
