@@ -49,8 +49,8 @@ class SalaryReportController extends Controller
             ->map(fn($d) => Carbon::parse($d)->toDateString())
             ->toArray();
 
-        // officeDays computed excluding weekends + holidays (change if you want otherwise)
-        $officeDays = $this->computeOfficeDays($startOfMonth, $endOfMonth, $holidays, excludeWeekends: true);
+        // officeDays computed excluding only holidays (no weekend off - employees work all days)
+        $officeDays = $this->computeOfficeDays($startOfMonth, $endOfMonth, $holidays, excludeWeekends: false);
 
         // employees filtered at DB level
         $employeesQuery = Employee::with(['department','designation'])
@@ -319,7 +319,7 @@ class SalaryReportController extends Controller
         $holidays = Holiday::whereBetween('date', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
             ->pluck('date')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
 
-        $officeDays = $this->computeOfficeDays($startOfMonth, $endOfMonth, $holidays, true);
+        $officeDays = $this->computeOfficeDays($startOfMonth, $endOfMonth, $holidays, false);
 
         $employees = Employee::when($employeeId, fn($q) => $q->where('id', $employeeId))->get();
 

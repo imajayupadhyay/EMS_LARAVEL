@@ -9,18 +9,22 @@ use App\Http\Controllers\Employee\LeaveSummaryController;
 use App\Http\Controllers\Employee\AttendanceController;
 use App\Http\Controllers\Employee\HolidayController;
 use App\Http\Controllers\Employee\DashboardController;
+use App\Http\Controllers\Employee\PolicyController;
+use App\Http\Controllers\Employee\KraController;
 
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('employee/policies', [\App\Http\Controllers\Employee\PolicyController::class, 'index'])->name('employee.policies.index');
-});
 
 Route::middleware(['auth:employee'])->prefix('employee')->name('employee.')->group(function () {
-    // Dashboard   
+    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/mark-warning-shown', [DashboardController::class, 'markWarningShown'])->name('dashboard.mark-warning-shown');  // NEW: Route to mark warning as shown
-  
-  Route::get('/holidays', [HolidayController::class, 'index'])->name('holidays.index');
+
+    Route::get('/holidays', [HolidayController::class, 'index'])->name('holidays.index');
+
+    // Policies
+    Route::get('/policies', [PolicyController::class, 'index'])->name('policies.index');
+
+    // KRA
+    Route::get('/kra', [KraController::class, 'index'])->name('kra.index');
     
     // Punch In / Punch Out
     Route::get('/punches', [PunchController::class, 'index'])->name('punches.index');

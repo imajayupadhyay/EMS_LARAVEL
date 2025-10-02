@@ -10,19 +10,12 @@ use Inertia\Inertia;
 
 class PolicyController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     /**
      * Show policies visible to current employee
      */
     public function index(Request $request)
     {
-        $employee = Auth::user(); // note: your employees table is separate; adjust if you use Auth user -> employee mapping
-        // If Auth user is separate from employees table, get employee model:
-        // $employeeModel = \App\Models\Employee::where('email', $employee->email)->first();
+        $employee = Auth::guard('employee')->user();
 
         // For this implementation we assume the authenticated user is an 'employee' type and you can access department_id, designation_id, id.
         // If not, adapt to fetch Employee model by user->email or mapping.
