@@ -410,10 +410,26 @@ class SalaryReportController extends Controller
      */
     public function export(Request $request)
     {
-        $month = (int)$request->get('month', now()->format('m'));
-        $year = (int)$request->get('year', now()->format('Y'));
+        try {
+            // Handle month in YYYY-MM format from frontend
+            $monthInput = $request->get('month', now()->format('Y-m'));
+            if (str_contains($monthInput, '-')) {
+                [$year, $month] = explode('-', $monthInput);
+                $year = (int) $year;
+                $month = (int) $month;
+            } else {
+                $month = (int) $monthInput;
+                $year = (int) $request->get('year', now()->format('Y'));
+            }
 
-        return Excel::download(new SalaryReportExport($month, $year), 'salary_report_'.$year.'_'.$month.'.xlsx');
+            $fileName = 'salary_report_' . $year . '_' . str_pad($month, 2, '0', STR_PAD_LEFT) . '.xlsx';
+
+            return Excel::download(new SalaryReportExport($month, $year), $fileName);
+
+        } catch (\Exception $e) {
+            Log::error('Salary Export Download Error: ' . $e->getMessage());
+            return back()->with('error', 'Failed to export salary report: ' . $e->getMessage());
+        }
     }
 
     /**
