@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Punch;
+use App\Models\Employee;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -18,46 +19,101 @@ class AttendanceExport implements FromView
 
     public function view(): View
     {
-        $query = Punch::with('employee.designation')
-            ->when($this->request->employee_id, fn ($q) => $q->where('employee_id', $this->request->employee_id))
-            ->when($this->request->date, fn ($q) => $q->whereDate('punched_in_at', $this->request->date))
-            ->when($this->request->month, function ($q) {
-                $month = Carbon::parse($this->request->month)->month;
-                $year = Carbon::parse($this->request->month)->year;
-                $q->whereMonth('punched_in_at', $month)->whereYear('punched_in_at', $year);
-            });
+        // Determine date range
+        $fromDate = $this->request->from_date;
+        $toDate = $this->request->to_date;
+        $month = $this->request->month;
+
+        if ($fromDate && $toDate) {
+            $startDate = Carbon::parse($fromDate);
+            $endDate = Carbon::parse($toDate);
+        } elseif ($month) {
+            $startDate = Carbon::parse($month)->startOfMonth();
+            $endDate = Carbon::parse($month)->endOfMonth();
+        } else {
+            // Default to current month
+            $startDate = Carbon::now()->startOfMonth();
+            $endDate = Carbon::now()->endOfMonth();
+        }
+
+        // Get all dates in range
+        $dates = [];
+        $currentDate = $startDate->copy();
+        while ($currentDate <= $endDate) {
+            $dates[] = $currentDate->format('Y-m-d');
+            $currentDate->addDay();
+        }
+
+        // Query punches for the date range
+        $query = Punch::with(['employee.designation', 'employee.department'])
+            ->whereBetween('punched_in_at', [$startDate->startOfDay(), $endDate->endOfDay()])
+            ->when($this->request->employee_id, fn ($q) => $q->where('employee_id', $this->request->employee_id));
 
         $punches = $query->get();
 
-        $attendance = $punches->groupBy(function ($punch) {
-            return $punch->employee_id . '-' . Carbon::parse($punch->punched_in_at)->format('Y-m-d');
+        // Group punches by employee and date, calculate total hours
+        $punchData = $punches->groupBy(function ($punch) {
+            $istDate = Carbon::parse($punch->punched_in_at)->timezone('Asia/Kolkata')->format('Y-m-d');
+            return $punch->employee_id . '-' . $istDate;
         })->map(function ($group) {
-            $first = $group->first();
-            $total = 0;
-
-            $pairs = $group->chunk(2);
-            foreach ($pairs as $pair) {
-                if (isset($pair[0]) && isset($pair[1])) {
-                    $in = Carbon::parse($pair[0]->punched_in_at);
-                    $out = Carbon::parse($pair[1]->punched_out_at ?? now());
-                    $total += $in->diffInSeconds($out);
+            $totalSeconds = 0;
+            foreach ($group as $p) {
+                if ($p->punched_in_at && $p->punched_out_at) {
+                    $in = Carbon::parse($p->punched_in_at)->timezone('Asia/Kolkata');
+                    $out = Carbon::parse($p->punched_out_at)->timezone('Asia/Kolkata');
+                    $totalSeconds += $in->diffInSeconds($out);
                 }
             }
-
             return [
-                'employee' => $first->employee->first_name . ' ' . $first->employee->last_name,
-                'date' => Carbon::parse($first->punched_in_at)->format('Y-m-d'),
-                'hours' => gmdate('H:i:s', $total),
+                'employee_id' => $group->first()->employee_id,
+                'date' => Carbon::parse($group->first()->punched_in_at)->timezone('Asia/Kolkata')->format('Y-m-d'),
+                'total_hours' => $totalSeconds / 3600, // Convert to hours
             ];
-        })->values();
+        });
 
-        $totalWorkingDays = $punches->groupBy(function ($punch) {
-            return Carbon::parse($punch->punched_in_at)->format('Y-m-d');
-        })->count();
+        // Get employees
+        $employeesQuery = Employee::with(['department', 'designation']);
+        if ($this->request->employee_id) {
+            $employeesQuery->where('id', $this->request->employee_id);
+        }
+        $employees = $employeesQuery->get();
+
+        // Build attendance matrix
+        $attendanceMatrix = [];
+        foreach ($employees as $employee) {
+            $row = [
+                'employee_id' => $employee->id,
+                'employee_name' => trim($employee->first_name . ' ' . $employee->last_name),
+                'department' => $employee->department ? $employee->department->name : '-',
+                'designation' => $employee->designation ? $employee->designation->name : '-',
+                'attendance' => []
+            ];
+
+            foreach ($dates as $date) {
+                $key = $employee->id . '-' . $date;
+                $status = 'Absent';
+
+                if (isset($punchData[$key])) {
+                    $hours = $punchData[$key]['total_hours'];
+                    if ($hours >= 9) {
+                        $status = 'Present';
+                    } elseif ($hours >= 4) {
+                        $status = 'Half Day';
+                    } else {
+                        $status = 'Absent';
+                    }
+                }
+
+                $row['attendance'][$date] = $status;
+            }
+
+            $attendanceMatrix[] = $row;
+        }
 
         return view('exports.attendance', [
-            'attendance' => $attendance,
-            'totalWorkingDays' => $totalWorkingDays
+            'attendanceMatrix' => $attendanceMatrix,
+            'dates' => $dates,
+            'startDate' => $startDate->format('F Y'),
         ]);
     }
 }

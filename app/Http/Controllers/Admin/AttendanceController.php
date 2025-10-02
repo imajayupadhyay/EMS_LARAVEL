@@ -17,14 +17,16 @@ class AttendanceController extends Controller
     public function index(Request $request)
     {
         $selectedEmployee = $request->get('employee_id');
-        $selectedDate     = $request->get('date');
+        $fromDate         = $request->get('from_date');
+        $toDate           = $request->get('to_date');
         $selectedMonth    = $request->get('month') ?? now()->format('Y-m');
 
         // Base punches query (filters applied to the list itself)
         $query = Punch::with(['employee.designation', 'employee.department'])
             ->when($selectedEmployee, fn ($q) => $q->where('employee_id', $selectedEmployee))
-            ->when($selectedDate, fn ($q) => $q->whereDate('punched_in_at', $selectedDate))
-            ->when($selectedMonth, function ($q) use ($selectedMonth) {
+            ->when($fromDate, fn ($q) => $q->whereDate('punched_in_at', '>=', $fromDate))
+            ->when($toDate, fn ($q) => $q->whereDate('punched_in_at', '<=', $toDate))
+            ->when($selectedMonth && !$fromDate && !$toDate, function ($q) use ($selectedMonth) {
                 $m = Carbon::parse($selectedMonth);
                 $q->whereMonth('punched_in_at', $m->month)
                   ->whereYear('punched_in_at', $m->year);
@@ -92,8 +94,8 @@ class AttendanceController extends Controller
         // -------- Always show TODAY fully (when no specific date filter), paginate the rest --------
         $todayIst = Carbon::now('Asia/Kolkata')->format('Y-m-d');
 
-        // If a specific date is set, just paginate everything
-        if (!empty($selectedDate)) {
+        // If a specific date range is set, just paginate everything
+        if (!empty($fromDate) || !empty($toDate)) {
             $sorted = $attendance->sortByDesc('date')->values();
 
             $perPage = (int)($request->get('per_page', 20));
@@ -116,7 +118,8 @@ class AttendanceController extends Controller
                 'totalWorkingDays' => $totalWorkingDays,
                 'filters'          => [
                     'employee_id' => $selectedEmployee,
-                    'date'        => $selectedDate,
+                    'from_date'   => $fromDate,
+                    'to_date'     => $toDate,
                     'month'       => $selectedMonth,
                 ],
             ]);
@@ -148,7 +151,8 @@ class AttendanceController extends Controller
             'totalWorkingDays' => $totalWorkingDays,
             'filters'          => [
                 'employee_id' => $selectedEmployee,
-                'date'        => $selectedDate,
+                'from_date'   => $fromDate,
+                'to_date'     => $toDate,
                 'month'       => $selectedMonth,
             ],
         ]);

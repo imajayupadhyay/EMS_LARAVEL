@@ -912,13 +912,14 @@ const onListEmployeeClick = (empItem) => {
     return
   }
   const today = (new Date()).toISOString().slice(0,10)
-  openDetails({ employee_id: empItem.id, date: filters.date || today, employee: empItem.name })
+  openDetails({ employee_id: empItem.id, date: today, employee: empItem.name })
   showListModal.value = false
 }
 
 const clearFilters = () => {
   filters.employee_id = ''
-  filters.date = ''
+  filters.from_date = ''
+  filters.to_date = ''
   filters.month = ''
 }
 
@@ -969,16 +970,6 @@ const absentCount = computed(() => notPunchedList.value.length)
         </div>
       </div>
       <div class="header-actions">
-        <button @click="exportPDF" class="btn-export pdf">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
-          </svg>
-          Export PDF
-        </button>
         <button @click="exportExcel" class="btn-export excel">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -1114,9 +1105,22 @@ const absentCount = computed(() => notPunchedList.value.length)
               <line x1="8" y1="2" x2="8" y2="6"/>
               <line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
-            Date
+            From Date
           </label>
-          <input type="date" v-model="filters.date" class="filter-input" />
+          <input type="date" v-model="filters.from_date" class="filter-input" />
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            To Date
+          </label>
+          <input type="date" v-model="filters.to_date" class="filter-input" />
         </div>
 
         <div class="filter-group">

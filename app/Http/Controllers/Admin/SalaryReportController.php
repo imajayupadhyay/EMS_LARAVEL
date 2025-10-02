@@ -27,8 +27,17 @@ class SalaryReportController extends Controller
      */
     public function index(Request $request)
     {
-        $month = (int) $request->get('month', now()->format('m'));
-        $year = (int) $request->get('year', now()->format('Y'));
+        // Handle month in YYYY-MM format from frontend
+        $monthInput = $request->get('month', now()->format('Y-m'));
+        if (str_contains($monthInput, '-')) {
+            [$year, $month] = explode('-', $monthInput);
+            $year = (int) $year;
+            $month = (int) $month;
+        } else {
+            $month = (int) $monthInput;
+            $year = (int) $request->get('year', now()->format('Y'));
+        }
+
         $employeeId = $request->get('employee_id');
 
         $startOfMonth = Carbon::create($year, $month, 1)->startOfDay();
@@ -59,10 +68,101 @@ class SalaryReportController extends Controller
         return Inertia::render('Admin/SalaryReport/Index', [
             'report' => $salaryRows,
             'employees' => $employees->map(fn ($e) => ['id' => $e->id, 'name' => trim($e->first_name.' '.$e->last_name)]),
-            'month' => str_pad($month, 2, '0', STR_PAD_LEFT),
-            'year' => $year,
+            'month' => sprintf('%04d-%02d', $year, $month),
+            'year' => (string) $year,
             'officeDays' => $officeDays,
             'selectedEmployee' => $employeeId
+        ]);
+    }
+
+    /**
+     * Update salary data for an employee
+     */
+    public function update(Request $request)
+    {
+        $data = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'month' => 'required|string',
+            'year' => 'required|string',
+            'gross_salary' => 'required|numeric|min:0',
+            'earnings' => 'required|array',
+            'earnings.*.label' => 'required|string',
+            'earnings.*.amount' => 'required|numeric',
+            'deductions' => 'required|array',
+            'deductions.*.label' => 'required|string',
+            'deductions.*.amount' => 'required|numeric',
+            'meta' => 'nullable|array'
+        ]);
+
+        // Parse month
+        if (str_contains($data['month'], '-')) {
+            [$year, $month] = explode('-', $data['month']);
+        } else {
+            $month = $data['month'];
+            $year = $data['year'];
+        }
+
+        // Find or create payroll period
+        $payrollPeriod = PayrollPeriod::firstOrCreate(
+            ['year' => (int) $year, 'month' => (int) $month],
+            [
+                'start_date' => Carbon::create($year, $month, 1)->startOfMonth()->toDateString(),
+                'end_date' => Carbon::create($year, $month, 1)->endOfMonth()->toDateString(),
+                'status' => 'draft',
+            ]
+        );
+
+        // Find or create salary record
+        $salary = Salary::updateOrCreate(
+            [
+                'employee_id' => $data['employee_id'],
+                'payroll_period_id' => $payrollPeriod->id
+            ],
+            [
+                'gross_salary' => $data['gross_salary'],
+                'total_earnings' => collect($data['earnings'])->sum('amount'),
+                'total_deductions' => collect($data['deductions'])->sum('amount'),
+                'net_salary' => collect($data['earnings'])->sum('amount') - collect($data['deductions'])->sum('amount'),
+                'status' => 'finalized',
+                'meta' => $data['meta'] ?? null,
+                'created_by' => Auth::id(),
+                'finalized_by' => Auth::id(),
+                'finalized_at' => Carbon::now(),
+            ]
+        );
+
+        // Delete existing salary items
+        $salary->items()->delete();
+
+        // Create new earnings
+        foreach ($data['earnings'] as $earning) {
+            if (!empty($earning['label']) && isset($earning['amount'])) {
+                SalaryItem::create([
+                    'salary_id' => $salary->id,
+                    'type' => 'earning',
+                    'code' => null,
+                    'label' => $earning['label'],
+                    'amount' => $earning['amount'],
+                ]);
+            }
+        }
+
+        // Create new deductions
+        foreach ($data['deductions'] as $deduction) {
+            if (!empty($deduction['label']) && isset($deduction['amount'])) {
+                SalaryItem::create([
+                    'salary_id' => $salary->id,
+                    'type' => 'deduction',
+                    'code' => null,
+                    'label' => $deduction['label'],
+                    'amount' => $deduction['amount'],
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Salary updated successfully'
         ]);
     }
 

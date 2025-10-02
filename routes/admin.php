@@ -163,6 +163,7 @@ Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])
 Route::post('/notifications/clear', [NotificationController::class, 'clear'])->name('notifications.clear');
 
 Route::get('/salary-report', [SalaryReportController::class, 'index'])->name('salary-report.index');
+Route::post('/salary-report/update', [SalaryReportController::class, 'update'])->name('salary-report.update');
 Route::post('/salary-report/finalize', [SalaryReportController::class, 'finalize'])
     ->name('salary-report.finalize');
 Route::get('/salary-report/export', [SalaryReportController::class, 'export'])->name('salary-report.export');
