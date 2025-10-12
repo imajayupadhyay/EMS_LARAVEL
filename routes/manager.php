@@ -3,10 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Manager\DashboardController;
 use App\Http\Controllers\Manager\EmployeeManageController;
-use App\Http\Controllers\Manager\ShiftController; 
+use App\Http\Controllers\Manager\ShiftController;
 use App\Http\Controllers\Manager\EmployeeShiftController;
 use App\Http\Controllers\Manager\AttendanceController;
 use App\Http\Controllers\Manager\LeaveController;
+use App\Http\Controllers\Manager\LeaveAssignmentController;
 
 Route::middleware(['auth'])
     ->prefix('manager')
@@ -59,5 +60,15 @@ Route::middleware(['auth'])
             Route::post('/{leave}/status', [LeaveController::class, 'updateStatus'])->name('update-status');
             Route::get('/export', [LeaveController::class, 'export'])->name('export');
             Route::get('/details/{leave}', [LeaveController::class, 'details'])->name('details');
+        });
+
+        // Leave Assignment Routes
+        Route::prefix('leave-assignments')->name('leave-assignments.')->group(function () {
+            Route::get('/', [LeaveAssignmentController::class, 'index'])->name('index');
+            Route::post('/store', [LeaveAssignmentController::class, 'store'])->name('store');
+            Route::post('/{leaveAssignment}/update', [LeaveAssignmentController::class, 'update'])->name('update');
+            Route::post('/{leaveAssignment}/delete', [LeaveAssignmentController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-assign', [LeaveAssignmentController::class, 'bulkAssign'])->name('bulk-assign');
+            Route::post('/bulk-update', [LeaveAssignmentController::class, 'bulkUpdate'])->name('bulk-update');
         });
     });
