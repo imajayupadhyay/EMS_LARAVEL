@@ -14,6 +14,8 @@ const editing = ref(null)
 const showForm = ref(false)
 const searchQuery = ref('')
 const statusFilter = ref('')
+const showEmergencyModal = ref(false)
+const pendingFormSubmission = ref(false)
 
 const form = useForm({
   leave_type_id: '',
@@ -65,10 +67,24 @@ const calculateDays = computed(() => {
 
 const submit = () => {
   // Check 12-hour advance notice requirement
-  if (!validateAdvanceNotice()) {
+  const advanceNoticeCheck = validateAdvanceNotice()
+
+  if (advanceNoticeCheck === false) {
     return
   }
 
+  if (advanceNoticeCheck === 'emergency') {
+    // Show emergency modal
+    showEmergencyModal.value = true
+    pendingFormSubmission.value = true
+    return
+  }
+
+  // Proceed with normal submission
+  submitForm()
+}
+
+const submitForm = () => {
   if (editing.value) {
     form.post(route('employee.leave-applications.update', editing.value.id), {
       preserveScroll: true,
@@ -76,6 +92,7 @@ const submit = () => {
         form.reset()
         editing.value = null
         showForm.value = false
+        pendingFormSubmission.value = false
       }
     })
   } else {
@@ -84,9 +101,20 @@ const submit = () => {
       onSuccess: () => {
         form.reset()
         showForm.value = false
+        pendingFormSubmission.value = false
       }
     })
   }
+}
+
+const confirmEmergencyLeave = () => {
+  showEmergencyModal.value = false
+  submitForm()
+}
+
+const cancelEmergencyLeave = () => {
+  showEmergencyModal.value = false
+  pendingFormSubmission.value = false
 }
 
 const validateAdvanceNotice = () => {
@@ -99,8 +127,7 @@ const validateAdvanceNotice = () => {
   const twelveHoursFromNow = new Date(now.getTime() + (12 * 60 * 60 * 1000))
 
   if (startDate < twelveHoursFromNow) {
-    alert('⚠️ Leave Request Not Allowed\n\nLeave applications must be submitted at least 12 hours in advance.\n\nFor urgent leave requests, please contact your manager directly.')
-    return false
+    return 'emergency' // Trigger emergency modal
   }
 
   return true
@@ -176,6 +203,68 @@ const formatDate = (date) => {
           </div>
         </div>
       </div>
+
+      <!-- Emergency Leave Modal -->
+      <transition
+        enter-active-class="transition ease-out duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div v-if="showEmergencyModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="cancelEmergencyLeave"></div>
+
+            <!-- Center modal -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <!-- Modal panel -->
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                  <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg class="h-6 w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                  </div>
+                  <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                      Emergency Leave Request
+                    </h3>
+                    <div class="mt-2">
+                      <p class="text-sm text-gray-500">
+                        Your leave request is within 12 hours. It is <strong>mandatory to call your manager</strong> for this emergency leave request before submitting.
+                      </p>
+                      <p class="text-sm text-gray-500 mt-2">
+                        Have you contacted your manager?
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  @click="confirmEmergencyLeave"
+                  class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-orange-600 text-base font-medium text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 sm:ml-3 sm:w-auto sm:text-sm"
+                >
+                  Yes, Submit Request
+                </button>
+                <button
+                  type="button"
+                  @click="cancelEmergencyLeave"
+                  class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
 
       <!-- Flash Messages -->
       <transition

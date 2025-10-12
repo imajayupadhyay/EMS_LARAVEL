@@ -53,14 +53,10 @@ class LeaveApplicationController extends Controller
             'day_type' => 'required|in:full,half',
         ]);
 
-        // Check 12-hour advance notice requirement
+        // Check if it's an emergency leave (within 12 hours)
         $startDateTime = Carbon::parse($request->start_date);
         $now = Carbon::now();
-
-        // If the leave starts within the next 12 hours, reject the request
-        if ($startDateTime->lessThan($now->addHours(12))) {
-            return back()->with('error', 'Leave applications must be submitted at least 12 hours in advance. Please contact your manager directly for urgent leave requests.');
-        }
+        $isEmergencyLeave = $startDateTime->lessThan($now->addHours(12));
 
         // PRESERVED: Original calculation logic
         $deduct = $request->day_type === 'half' ? 0.5 : 1;
@@ -86,10 +82,15 @@ class LeaveApplicationController extends Controller
             'day_type' => $request->day_type,
         ]);
 
-        // PRESERVED: Original notification creation
+        // Create notification with emergency indicator
+        $notificationMessage = auth()->user()->first_name . ' ' . auth()->user()->last_name . ' applied for a ' . ucfirst($request->day_type) . ' day leave';
+        if ($isEmergencyLeave) {
+            $notificationMessage .= ' (EMERGENCY - Within 12 hours)';
+        }
+
         AdminNotification::create([
-            'title' => 'New Leave Application',
-            'message' => auth()->user()->first_name . ' ' . auth()->user()->last_name . ' applied for a ' . ucfirst($request->day_type) . ' day leave.',
+            'title' => $isEmergencyLeave ? 'Emergency Leave Application' : 'New Leave Application',
+            'message' => $notificationMessage . '.',
             'body' => 'Leave from ' . $request->start_date . ' to ' . $request->end_date,
             'is_read' => false,
         ]);
@@ -120,15 +121,6 @@ class LeaveApplicationController extends Controller
             'reason' => 'required|string|max:500',
             'day_type' => 'required|in:full,half',
         ]);
-
-        // Check 12-hour advance notice requirement for updates
-        $startDateTime = Carbon::parse($request->start_date);
-        $now = Carbon::now();
-
-        // If the leave starts within the next 12 hours, reject the update
-        if ($startDateTime->lessThan($now->addHours(12))) {
-            return back()->with('error', 'Leave applications must be submitted at least 12 hours in advance. Please contact your manager directly for urgent leave requests.');
-        }
 
         // PRESERVED: Original update logic
         $leave->update([
