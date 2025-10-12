@@ -224,7 +224,7 @@
             <div class="holiday-info">
               <h3 class="holiday-name">{{ holiday.name }}</h3>
               <div class="holiday-meta">
-                <span class="date-display">{{ formatDate(holiday.date) }}</span>
+                <span class="date-display">{{ formatDate(holiday.date) }}<span v-if="holiday.date_to && holiday.date !== holiday.date_to"> - {{ formatDate(holiday.date_to) }}</span></span>
                 <span class="type-badge" :class="getTypeBadgeClass(holiday.type)">
                   {{ holiday.type.charAt(0).toUpperCase() + holiday.type.slice(1) }}
                 </span>
@@ -414,7 +414,7 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label required">Date</label>
+                <label class="form-label required">Date From</label>
                 <input
                   type="date"
                   v-model="form.date"
@@ -424,6 +424,22 @@
                 <span v-if="form.errors.date" class="form-error">
                   {{ form.errors.date }}
                 </span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Date To (Optional)</label>
+                <input
+                  type="date"
+                  v-model="form.date_to"
+                  class="form-input"
+                  :min="form.date"
+                />
+                <span v-if="form.errors.date_to" class="form-error">
+                  {{ form.errors.date_to }}
+                </span>
+                <div class="form-help">
+                  Leave empty for single day holiday, or select end date for multi-day holiday
+                </div>
               </div>
 
               <div class="form-group">
@@ -452,7 +468,7 @@
                   </span>
                 </div>
                 <div class="preview-details">
-                  <div class="preview-date">{{ formatDate(form.date) }}</div>
+                  <div class="preview-date">{{ formatDate(form.date) }}<span v-if="form.date_to"> - {{ formatDate(form.date_to) }}</span></div>
                   <div class="preview-day">{{ getDayOfWeek(form.date) }}</div>
                 </div>
               </div>
@@ -518,6 +534,7 @@ const filters = ref({
 const form = useForm({
   name: '',
   date: '',
+  date_to: '',
   type: 'public',
 })
 
@@ -782,6 +799,7 @@ function editHoliday(holiday) {
   editingHoliday.value = holiday
   form.name = holiday.name
   form.date = holiday.date
+  form.date_to = holiday.date_to || ''
   form.type = holiday.type
   showAddModal.value = true
 }

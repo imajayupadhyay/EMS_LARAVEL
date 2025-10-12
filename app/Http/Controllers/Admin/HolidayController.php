@@ -28,6 +28,7 @@ class HolidayController extends Controller
         $request->validate([
             'name' => 'required|string',
             'date' => 'required|date',
+            'date_to' => 'nullable|date|after_or_equal:date',
             'type' => 'required|in:public,restricted'
         ]);
 
@@ -41,6 +42,7 @@ class HolidayController extends Controller
         $request->validate([
             'name' => 'required|string',
             'date' => 'required|date',
+            'date_to' => 'nullable|date|after_or_equal:date',
             'type' => 'required|in:public,restricted'
         ]);
 
