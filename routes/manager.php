@@ -8,6 +8,7 @@ use App\Http\Controllers\Manager\EmployeeShiftController;
 use App\Http\Controllers\Manager\AttendanceController;
 use App\Http\Controllers\Manager\LeaveController;
 use App\Http\Controllers\Manager\LeaveAssignmentController;
+use App\Http\Controllers\Manager\HolidayController;
 
 Route::middleware(['auth'])
     ->prefix('manager')
@@ -70,5 +71,13 @@ Route::middleware(['auth'])
             Route::post('/{leaveAssignment}/delete', [LeaveAssignmentController::class, 'destroy'])->name('destroy');
             Route::post('/bulk-assign', [LeaveAssignmentController::class, 'bulkAssign'])->name('bulk-assign');
             Route::post('/bulk-update', [LeaveAssignmentController::class, 'bulkUpdate'])->name('bulk-update');
+        });
+
+        // Holiday Routes
+        Route::prefix('holidays')->name('holidays.')->group(function () {
+            Route::get('/', [HolidayController::class, 'index'])->name('index');
+            Route::post('/store', [HolidayController::class, 'store'])->name('store');
+            Route::post('/{holiday}/update', [HolidayController::class, 'update'])->name('update');
+            Route::post('/{holiday}/delete', [HolidayController::class, 'destroy'])->name('destroy');
         });
     });
