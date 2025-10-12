@@ -15,6 +15,9 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
+        // Get current user
+        $user = $request->user();
+
         // Example props to pass — add real stats/queries if you want
         $data = [
             'stats' => [
@@ -22,7 +25,10 @@ class DashboardController extends Controller
                 'pending_leaves' => 3,
                 'today_attendance' => 28,
             ],
-            // you can pass user via $request->user() if necessary
+            'user' => [
+                'name' => $user->name ?? 'Manager',
+                'email' => $user->email ?? '',
+            ],
         ];
 
         return Inertia::render('Manager/Dashboard', $data);
