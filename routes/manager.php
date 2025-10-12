@@ -9,6 +9,8 @@ use App\Http\Controllers\Manager\AttendanceController;
 use App\Http\Controllers\Manager\LeaveController;
 use App\Http\Controllers\Manager\LeaveAssignmentController;
 use App\Http\Controllers\Manager\HolidayController;
+use App\Http\Controllers\Manager\DepartmentController;
+use App\Http\Controllers\Manager\DesignationController;
 
 Route::middleware(['auth'])
     ->prefix('manager')
@@ -79,5 +81,24 @@ Route::middleware(['auth'])
             Route::post('/store', [HolidayController::class, 'store'])->name('store');
             Route::post('/{holiday}/update', [HolidayController::class, 'update'])->name('update');
             Route::post('/{holiday}/delete', [HolidayController::class, 'destroy'])->name('destroy');
+        });
+
+        // Department Routes
+        Route::prefix('departments')->name('departments.')->group(function () {
+            Route::get('/', [DepartmentController::class, 'index'])->name('index');
+            Route::post('/store', [DepartmentController::class, 'store'])->name('store');
+            Route::post('/{department}/update', [DepartmentController::class, 'update'])->name('update');
+            Route::post('/{department}/delete', [DepartmentController::class, 'destroy'])->name('destroy');
+        });
+
+        // Designation Routes
+        Route::prefix('designations')->name('designations.')->group(function () {
+            Route::get('/', [DesignationController::class, 'index'])->name('index');
+            Route::post('/store', [DesignationController::class, 'store'])->name('store');
+            Route::post('/{designation}/update', [DesignationController::class, 'update'])->name('update');
+            Route::post('/{designation}/delete', [DesignationController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-update', [DesignationController::class, 'bulkUpdate'])->name('bulk-update');
+            Route::post('/bulk-assign', [DesignationController::class, 'bulkAssign'])->name('bulk-assign');
+            Route::post('/bulk-delete', [DesignationController::class, 'bulkDelete'])->name('bulk-delete');
         });
     });
