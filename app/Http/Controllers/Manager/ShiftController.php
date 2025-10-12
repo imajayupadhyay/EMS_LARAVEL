@@ -13,6 +13,46 @@ class ShiftController extends Controller
     {
         return Inertia::render('Manager/Shifts/Index', [
             'shifts' => Shift::withCount('employees')->latest()->get(),
+            'flash' => session('success'),
         ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'time_from' => 'required|date_format:H:i',
+            'time_to' => 'required|date_format:H:i|after:time_from',
+        ]);
+
+        Shift::create($request->only('name', 'time_from', 'time_to'));
+
+        return redirect()->route('manager.shifts.index')->with('success', 'Shift added successfully.');
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:shifts,id',
+            'name' => 'required|string|max:255',
+            'time_from' => 'required|date_format:H:i',
+            'time_to' => 'required|date_format:H:i|after:time_from',
+        ]);
+
+        $shift = Shift::findOrFail($request->id);
+        $shift->update($request->only('name', 'time_from', 'time_to'));
+
+        return redirect()->route('manager.shifts.index')->with('success', 'Shift updated successfully.');
+    }
+
+    public function destroy(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:shifts,id'
+        ]);
+
+        Shift::destroy($request->id);
+
+        return redirect()->route('manager.shifts.index')->with('success', 'Shift deleted successfully.');
     }
 }

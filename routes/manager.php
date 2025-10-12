@@ -18,6 +18,9 @@ Route::middleware(['auth'])
         
         // Shift Management Routes - MOVED BEFORE employees group to avoid conflicts
         Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
+        Route::post('/shifts/store', [ShiftController::class, 'store'])->name('shifts.store');
+        Route::post('/shifts/update', [ShiftController::class, 'update'])->name('shifts.update');
+        Route::post('/shifts/delete', [ShiftController::class, 'destroy'])->name('shifts.delete');
         
         // Employee Shift Assignment Routes - Changed URL to avoid conflict with /{employee} route
         Route::get('/employee-shifts', [EmployeeShiftController::class, 'index'])->name('employees.shifts.index');
