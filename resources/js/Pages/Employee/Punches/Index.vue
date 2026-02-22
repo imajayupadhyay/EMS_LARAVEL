@@ -1,6 +1,8 @@
 <template>
   <EmployeeLayout>
-    <Head title="Punch In / Out" />
+    <Head title="Punch In / Out">
+    <meta name="description" content="View your daily punch-in and punch-out records." head-key="description" />
+  </Head>
     <div class="punch-container">
       <!-- Page Header -->
       <!-- Status Card -->

@@ -88,6 +88,9 @@ async function confirmDelete(id) {
 </script>
 
 <template>
+  <Head title="Shifts">
+    <meta name="description" content="Manage employee work shifts and schedules." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="max-w-6xl mx-auto p-6">
       <!-- Header -->

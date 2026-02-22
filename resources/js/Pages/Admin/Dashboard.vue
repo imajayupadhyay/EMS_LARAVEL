@@ -1,4 +1,7 @@
 <template>
+  <Head title="Admin Dashboard">
+    <meta name="description" content="Manage employees, attendance, leaves, and more from the admin dashboard." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="dashboard-container">
       <!-- Header Section -->

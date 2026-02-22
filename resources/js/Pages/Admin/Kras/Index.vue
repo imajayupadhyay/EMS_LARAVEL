@@ -1,4 +1,7 @@
 <template>
+  <Head title="KRAs">
+    <meta name="description" content="Manage Key Result Areas for employee performance evaluation." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="kra-management">
       <!-- Header Section -->

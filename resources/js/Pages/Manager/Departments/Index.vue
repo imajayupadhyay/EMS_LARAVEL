@@ -1,6 +1,8 @@
 <template>
   <ManagerLayout>
-    <Head title="Departments Management" />
+    <Head title="Departments Management">
+    <meta name="description" content="View department information and structure." head-key="description" />
+  </Head>
     
     <!-- Header Section -->
     <div class="page-header">

@@ -1,4 +1,7 @@
 <template>
+  <Head title="Users">
+    <meta name="description" content="Manage system users and access permissions." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="p-4">
       <!-- HEADER -->

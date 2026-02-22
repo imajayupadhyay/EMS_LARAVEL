@@ -1,4 +1,7 @@
 <template>
+  <Head title="Marketer Login">
+    <meta name="description" content="Sign in to the HRMS Marketer portal." head-key="description" />
+  </Head>
   <div class="min-h-screen flex items-center justify-center bg-gradient-to-r from-orange-500 to-pink-600 px-4">
     <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6">
       <!-- Logo -->

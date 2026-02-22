@@ -1,4 +1,7 @@
 <template>
+  <Head title="Marketer Dashboard">
+    <meta name="description" content="Manage your marketing activities and daily targets." head-key="description" />
+  </Head>
   <div class="min-h-screen bg-gradient-to-r from-orange-500 to-pink-600 flex flex-col">
     <!-- Topbar -->
     <header class="bg-white shadow p-4 flex justify-between items-center">

@@ -1,6 +1,8 @@
 <template>
   <AdminLayout>
-    <Head title="Departments Management" />
+    <Head title="Departments Management">
+    <meta name="description" content="Manage company departments and organizational structure." head-key="description" />
+  </Head>
     
     <!-- Header Section -->
     <div class="page-header">

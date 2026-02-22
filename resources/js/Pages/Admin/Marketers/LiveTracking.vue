@@ -1,4 +1,7 @@
 <template>
+  <Head title="Live Tracking">
+    <meta name="description" content="Track marketer locations in real time." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="p-6 space-y-6">
       <!-- Header -->

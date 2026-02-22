@@ -16,7 +16,9 @@ defineProps({
 </script>
 
 <template>
-    <Head title="Profile" />
+    <Head title="Profile">
+    <meta name="description" content="Update your account information and preferences." head-key="description" />
+  </Head>
 
     <AuthenticatedLayout>
         <template #header>

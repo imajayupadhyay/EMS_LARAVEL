@@ -1,6 +1,8 @@
 <template>
   <AdminLayout>
-    <Head title="Manage Leave Applications" />
+    <Head title="Manage Leave Applications">
+    <meta name="description" content="Review and manage employee leave requests." head-key="description" />
+  </Head>
     
     <div class="page-container">
       <!-- Page Header -->

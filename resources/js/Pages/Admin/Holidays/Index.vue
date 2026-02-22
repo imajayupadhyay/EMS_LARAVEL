@@ -1,6 +1,8 @@
 <template>
   <AdminLayout>
-    <Head title="Holidays Management" />
+    <Head title="Holidays Management">
+    <meta name="description" content="Manage company holidays and the leave calendar." head-key="description" />
+  </Head>
     
     <!-- Header Section -->
     <div class="page-header">

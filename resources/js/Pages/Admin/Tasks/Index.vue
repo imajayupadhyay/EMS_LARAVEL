@@ -136,7 +136,9 @@ onMounted(() => {
 
 <template>
   <AdminLayout>
-    <Head title="Employee Tasks Management" />
+    <Head title="Employee Tasks Management">
+    <meta name="description" content="View and manage employee tasks and assignments." head-key="description" />
+  </Head>
     
     <div class="page-container">
       <!-- Page Header -->

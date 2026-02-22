@@ -22,7 +22,9 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Register" />
+        <Head title="Register">
+    <meta name="description" content="Create a new account on the HRMS portal." head-key="description" />
+  </Head>
 
         <form @submit.prevent="submit">
             <div>

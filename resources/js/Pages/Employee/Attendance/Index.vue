@@ -123,7 +123,9 @@ watch(selectedMonth, (val) => {
 
 <template>
   <EmployeeLayout>
-    <Head title="My Attendance" />
+    <Head title="My Attendance">
+    <meta name="description" content="View your attendance records and history." head-key="description" />
+  </Head>
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <!-- Header -->

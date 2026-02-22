@@ -145,7 +145,9 @@ watch([type, month], () => {
 
 <template>
   <EmployeeLayout>
-    <Head title="Company Holidays" />
+    <Head title="Company Holidays">
+    <meta name="description" content="View upcoming company holidays." head-key="description" />
+  </Head>
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <!-- Header -->

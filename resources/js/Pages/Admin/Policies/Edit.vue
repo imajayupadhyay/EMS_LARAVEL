@@ -88,6 +88,9 @@ const remove = async () => {
 </script>
 
 <template>
+  <Head title="Edit Policy">
+    <meta name="description" content="Update an existing company policy." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="max-w-3xl mx-auto p-6">
       <div class="bg-white rounded-lg shadow-lg p-6">

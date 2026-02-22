@@ -1,4 +1,7 @@
 <template>
+  <Head title="Manager Dashboard">
+    <meta name="description" content="Manage your team's attendance, leaves, and performance." head-key="description" />
+  </Head>
   <div class="space-y-6">
     <!-- Welcome Section -->
     <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-2xl shadow-xl">
@@ -222,6 +225,11 @@ export default {
     }
   }
 };
+</script>
+
+
+<script setup>
+import { Head } from '@inertiajs/vue3'
 </script>
 
 <style scoped>

@@ -4,7 +4,9 @@ import { Head } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Dashboard">
+    <meta name="description" content="Your HRMS portal dashboard overview." head-key="description" />
+  </Head>
 
     <AuthenticatedLayout>
         <template #header>

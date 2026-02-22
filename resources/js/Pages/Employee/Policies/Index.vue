@@ -359,6 +359,7 @@
 </style>
 
 <script setup>
+import { Head } from '@inertiajs/vue3'
 import EmployeeLayout from '@/Layouts/EmployeeLayout.vue'
 import { ref, computed } from 'vue'
 
@@ -411,6 +412,9 @@ const stripHtml = (html) => {
 </script>
 
 <template>
+  <Head title="Company Policies">
+    <meta name="description" content="View company HR policies and guidelines." head-key="description" />
+  </Head>
   <EmployeeLayout>
     <div class="page-container">
       <!-- Page Header -->

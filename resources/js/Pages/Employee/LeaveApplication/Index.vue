@@ -179,7 +179,9 @@ const formatDate = (date) => {
 
 <template>
   <EmployeeLayout>
-    <Head title="Leave Applications" />
+    <Head title="Leave Applications">
+    <meta name="description" content="Apply for leave and track your requests." head-key="description" />
+  </Head>
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <!-- Header -->

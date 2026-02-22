@@ -1,4 +1,7 @@
 <template>
+  <Head title="Login">
+    <meta name="description" content="Sign in to access the HRMS Employee Management System." head-key="description" />
+  </Head>
   <div class="login-container">
     <!-- Background with animated gradient -->
     <div class="background-gradient"></div>

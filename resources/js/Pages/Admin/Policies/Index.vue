@@ -47,6 +47,9 @@ const confirmDelete = async (id) => {
 </script>
 
 <template>
+  <Head title="Policies">
+    <meta name="description" content="View and manage company HR policies." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="max-w-6xl mx-auto p-6">
       <div class="flex items-center justify-between mb-6">

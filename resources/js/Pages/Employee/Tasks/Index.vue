@@ -205,7 +205,9 @@ const getWordCount = (html) => {
 
 <template>
   <EmployeeLayout>
-    <Head title="Daily Task Update" />
+    <Head title="Daily Task Update">
+    <meta name="description" content="View and manage your assigned tasks." head-key="description" />
+  </Head>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <!-- Header -->

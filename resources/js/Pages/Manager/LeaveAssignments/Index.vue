@@ -1,6 +1,8 @@
 <template>
   <ManagerLayout>
-    <Head title="Leave Assignments Management" />
+    <Head title="Leave Assignments Management">
+    <meta name="description" content="Assign leave quotas to team members." head-key="description" />
+  </Head>
     
     <!-- Header Section -->
     <div class="page-header">

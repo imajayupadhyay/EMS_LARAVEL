@@ -1,6 +1,8 @@
 <template>
   <AdminLayout>
-    <Head title="Leave Types Management" />
+    <Head title="Leave Types Management">
+    <meta name="description" content="Manage available leave types and policies." head-key="description" />
+  </Head>
     
     <!-- Header Section -->
     <div class="page-header">

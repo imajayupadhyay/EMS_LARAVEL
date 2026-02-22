@@ -1,6 +1,8 @@
 <template>
   <ManagerLayout>
-    <Head title="Holidays Management" />
+    <Head title="Holidays Management">
+    <meta name="description" content="View company holidays and the leave calendar." head-key="description" />
+  </Head>
     
     <!-- Header Section -->
     <div class="page-header">

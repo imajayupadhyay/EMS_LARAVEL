@@ -23,7 +23,9 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Forgot Password" />
+        <Head title="Forgot Password">
+    <meta name="description" content="Reset your HRMS portal password via email." head-key="description" />
+  </Head>
 
         <div class="mb-4 text-sm text-gray-600">
             Forgot your password? No problem. Just let us know your email

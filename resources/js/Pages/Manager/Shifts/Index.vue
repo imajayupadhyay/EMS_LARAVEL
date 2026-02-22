@@ -109,6 +109,9 @@ function calculateDuration(start, end) {
 </script>
 
 <template>
+  <Head title="Shifts">
+    <meta name="description" content="View and manage work shift schedules." head-key="description" />
+  </Head>
   <div class="p-6">
     <!-- Header -->
     <div class="mb-8">

@@ -1,6 +1,8 @@
 <template>
   <ManagerLayout>
-    <Head title="Designations Management" />
+    <Head title="Designations Management">
+    <meta name="description" content="View employee designations in your department." head-key="description" />
+  </Head>
     
     <!-- Header Section -->
     <div class="page-header">

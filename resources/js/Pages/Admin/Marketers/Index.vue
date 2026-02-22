@@ -1,4 +1,7 @@
 <template>
+  <Head title="Marketers">
+    <meta name="description" content="View and manage marketing team members." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="p-6">
       <div class="flex justify-between items-center mb-6">

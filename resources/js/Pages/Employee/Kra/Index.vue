@@ -373,6 +373,9 @@ const formatDate = (date) => {
 </script>
 
 <template>
+  <Head title="My KRAs">
+    <meta name="description" content="View your Key Result Areas and performance metrics." head-key="description" />
+  </Head>
   <EmployeeLayout>
     <div class="page-container">
       <!-- Page Header -->

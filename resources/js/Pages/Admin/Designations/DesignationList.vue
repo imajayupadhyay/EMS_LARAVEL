@@ -1,4 +1,7 @@
 <template>
+  <Head title="Designation List">
+    <meta name="description" content="View all employee designations." head-key="description" />
+  </Head>
   <div class="overflow-x-auto bg-white shadow rounded mt-6">
     <table class="w-full text-sm">
       <thead class="bg-orange-100 text-orange-700">

@@ -1,6 +1,8 @@
 <template>
   <AdminLayout>
-    <Head title="Designations Management" />
+    <Head title="Designations Management">
+    <meta name="description" content="Manage employee designations and job titles." head-key="description" />
+  </Head>
     
     <!-- Header Section -->
     <div class="page-header">

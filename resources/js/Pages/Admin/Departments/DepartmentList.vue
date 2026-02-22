@@ -1,4 +1,7 @@
 <template>
+  <Head title="Department List">
+    <meta name="description" content="View all departments in the organization." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="max-w-4xl mx-auto p-6">
       <h2 class="text-2xl font-bold text-orange-600 mb-6">Manage Departments</h2>

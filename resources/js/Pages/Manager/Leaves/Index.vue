@@ -1,4 +1,7 @@
 <template>
+  <Head title="Leave Requests">
+    <meta name="description" content="Review and approve team leave requests." head-key="description" />
+  </Head>
   <div class="min-h-screen bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Page Header -->

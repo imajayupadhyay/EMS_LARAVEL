@@ -1,4 +1,7 @@
 <template>
+  <Head title="Employee List">
+    <meta name="description" content="View the complete list of employees." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="page-container">
       <!-- Page Header -->

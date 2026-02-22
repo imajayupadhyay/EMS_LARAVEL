@@ -33,7 +33,9 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Reset Password" />
+        <Head title="Reset Password">
+    <meta name="description" content="Set a new password for your HRMS account." head-key="description" />
+  </Head>
 
         <form @submit.prevent="submit">
             <div>

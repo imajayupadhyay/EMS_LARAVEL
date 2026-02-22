@@ -1,4 +1,7 @@
 <template>
+  <Head title="Notifications">
+    <meta name="description" content="View system notifications and alerts." head-key="description" />
+  </Head>
   <div>
     <h1 class="text-2xl font-bold text-orange-600 mb-4">Notifications</h1>
     <div class="bg-white rounded shadow p-4">
@@ -15,6 +18,7 @@
 </template>
 
 <script setup>
+import { Head } from '@inertiajs/vue3'
 defineProps({
   notifications: Array
 })

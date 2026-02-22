@@ -709,6 +709,9 @@ const totalDeductions = computed(() => props.report.reduce((sum, row) => sum + (
 </script>
 
 <template>
+  <Head title="Salary Report">
+    <meta name="description" content="View employee salary reports and summaries." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="page-container">
       <!-- Page Header -->

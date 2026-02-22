@@ -1,4 +1,7 @@
 <template>
+  <Head title="Locations">
+    <meta name="description" content="Manage office locations and work sites." head-key="description" />
+  </Head>
   <AdminLayout>
     <div>
       <h1 class="text-2xl font-bold text-orange-600 mb-6">Manage Locations</h1>

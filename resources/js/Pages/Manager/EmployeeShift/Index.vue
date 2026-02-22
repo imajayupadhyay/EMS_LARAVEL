@@ -47,6 +47,9 @@ const assignShift = () => {
 </script>
 
 <template>
+  <Head title="Employee Shifts">
+    <meta name="description" content="Manage shift assignments for your team." head-key="description" />
+  </Head>
   <div class="p-6">
     <!-- Header -->
     <div class="mb-8">

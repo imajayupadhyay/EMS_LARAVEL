@@ -1,4 +1,7 @@
 <template>
+  <Head title="Add Employee">
+    <meta name="description" content="Add a new employee to the HRMS system." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="page-container">
       <!-- Page Header -->

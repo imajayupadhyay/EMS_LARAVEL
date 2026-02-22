@@ -1,4 +1,7 @@
 <template>
+  <Head title="My Dashboard">
+    <meta name="description" content="View your attendance, leaves, and tasks at a glance." head-key="description" />
+  </Head>
   <div class="dashboard-container">
     <!-- Warning/Appreciation Modal -->
     <div v-if="showWarningModal" class="modal-overlay" @click="closeWarningModal">

@@ -951,6 +951,9 @@ const absentCount = computed(() => notPunchedList.value.length)
 </script>
 
 <template>
+  <Head title="Attendance Management">
+    <meta name="description" content="View and manage employee attendance records." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="page-container">
     <!-- Page Header -->

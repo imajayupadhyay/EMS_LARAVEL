@@ -1,4 +1,7 @@
 <template>
+  <Head title="Manage Roles">
+    <meta name="description" content="Assign and manage user roles and permissions." head-key="description" />
+  </Head>
   <div class="max-w-7xl mx-auto py-10 px-6">
     <h1 class="text-2xl font-bold text-orange-600 mb-6">Manage Roles</h1>
 
@@ -13,6 +16,7 @@
 </template>
 
 <script setup>
+import { Head } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import DepartmentList from '../Departments/DepartmentList.vue'
 import DesignationList from '../Designations/DesignationList.vue'

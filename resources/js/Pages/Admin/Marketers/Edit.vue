@@ -1,4 +1,7 @@
 <template>
+  <Head title="Edit Marketer">
+    <meta name="description" content="Update marketer information and details." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="p-6">
       <h1 class="text-2xl font-bold mb-6">Edit Marketer</h1>
@@ -46,6 +49,7 @@
 </template>
 
 <script setup>
+import { Head } from '@inertiajs/vue3'
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import AdminLayout from "@/Layouts/AdminLayout.vue";

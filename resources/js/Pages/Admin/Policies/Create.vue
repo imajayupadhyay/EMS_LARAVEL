@@ -66,6 +66,9 @@ const submit = async () => {
 </script>
 
 <template>
+  <Head title="Add Policy">
+    <meta name="description" content="Create a new company policy document." head-key="description" />
+  </Head>
   <AdminLayout>
     <div class="max-w-3xl mx-auto p-6">
       <div class="bg-white rounded-lg shadow-lg p-6">
